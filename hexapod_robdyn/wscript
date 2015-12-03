@@ -64,7 +64,7 @@ def configure(conf):
 
 
 def build(bld):
-    bld.shlib(features = 'cxx cxxshlib',
+    bld.stlib(features = 'cxx cxxstlib',
               source = 'hexapod.cpp simu.cpp',
               includes = '.',
               uselib = 'BOOST BOOST_TIMER BOOST_SYSTEM BOOST_THREAD BOOST_SERIALIZATION BOOST_FILESYSTEM ODE ROBDYN EIGEN HEXAPOD_CONTROLLER',
@@ -75,7 +75,7 @@ def build(bld):
                                  'osgViewer', 'OpenThreads',
                                  'osgFX', 'osgShadow']
 
-        bld.shlib(features = 'cxx cxxshlib',
+        bld.stlib(features = 'cxx cxxstlib',
                   source = 'hexapod.cpp simu.cpp',
                   includes = '.',
                   uselib = 'BOOST BOOST_TIMER BOOST_SYSTEM BOOST_THREAD BOOST_SERIALIZATION BOOST_FILESYSTEM ODE ROBDYN EIGEN HEXAPOD_CONTROLLER OSG',
@@ -96,7 +96,7 @@ def build(bld):
 
     bld.install_files('${PREFIX}/include/hexapod_robdyn', 'hexapod.hpp')
     bld.install_files('${PREFIX}/include/hexapod_robdyn', 'simu.hpp')
-    bld.install_files('${PREFIX}/lib', 'build/libhexapod_robdyn.so')
+    bld.install_files('${PREFIX}/lib', 'build/libhexapod_robdyn.a')
 
     if bld.get_env()['BUILD_GRAPHIC'] == True:
-        bld.install_files('${PREFIX}/lib', 'build/libhexapod_robdyn_graphic.so')
+        bld.install_files('${PREFIX}/lib', 'build/libhexapod_robdyn_graphic.a')
