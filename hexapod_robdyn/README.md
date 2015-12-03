@@ -16,6 +16,15 @@
     - Configure with `./waf configure --prefix=path_to_install`
     - Compile with `./waf build`
     - Install with `./waf install`
+- [robdyn]: Dynamic simulator
+    - Get the code: `git clone https://github.com/jbmouret/robdyn.git`
+    - Configure for compilation/installation: `./waf configure`
+    - Compile with `./waf`
+    - Install robdyn on your computer: `sudo ./waf install`
+    - For more advanced options, look at [robdyn]'s repo.
+- [ODE]: Open Dynamics Engine
+- [Boost]: C++ Template Libraries
+- [Eigen]: Linear Algebra C++ Library
 
 ### Compile and install
 
@@ -105,3 +114,6 @@ simu.run(duration_in_secs);
 [CeCILL]: http://www.cecill.info/index.en.html
 [robdyn]: https://github.com/resibots/robdyn
 [hexapod_controller]: https://github.com/resibots/hexapod_common
+[ODE]: http://www.ode.org
+[Boost]: http://www.boost.org
+[Eigen]: http://eigen.tuxfamily.org/
