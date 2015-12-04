@@ -44,10 +44,14 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
 
         ++index;
     }
+
     _old_t = t;
     _old_index = index;
 
-    // TO-DO: compute covered_distance, arrival_angle and stabilize robot
+    if (!continuous)
+        _stabilize_robot();
+
+    // TO-DO: compute covered_distance, arrival_angle
 }
 
 HexapodDARTSimu::robot_t HexapodDARTSimu::robot()
@@ -162,6 +166,12 @@ const std::vector<double>& HexapodDARTSimu::get_contact(int i)
     }
     assert(false);
     return _behavior_contact_0;
+}
+
+bool HexapodDARTSimu::_stabilize_robot()
+{
+	// TO-DO: stabilize robot
+	return true;
 }
 
 void HexapodDARTSimu::_add_floor()

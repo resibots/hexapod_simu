@@ -43,11 +43,11 @@ Then in your C++ code you would have something like the following:
 
 ```cpp
 // previous includes
-#include <simu.hpp>
+#include <hexapod_dart_simu.hpp>
 
 // rest of code
 
-Simu simu(controller_parameters, robot_ptr);
+HexapodDARTSimu simu(controller_parameters, robot_ptr);
 simu.run(duration_in_secs);
 
 // rest of code
