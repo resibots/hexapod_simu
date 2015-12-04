@@ -1,0 +1,93 @@
+#!/usr/bin/env python
+# encoding: utf-8
+import sys
+sys.path.insert(0, sys.path[0]+'/waf_tools')
+
+VERSION = '0.0.1'
+APPNAME = 'hexapod_dart'
+
+srcdir = '.'
+blddir = 'build'
+
+from waflib.Build import BuildContext
+import dart
+import eigen
+import hexapod_controller
+
+
+def options(opt):
+    opt.load('compiler_cxx')
+    opt.load('compiler_c')
+    opt.load('eigen')
+    opt.load('dart')
+    opt.load('hexapod_controller')
+
+
+def configure(conf):
+    conf.get_env()['BUILD_GRAPHIC'] = False
+
+    conf.load('compiler_cxx')
+    conf.load('compiler_c')
+    conf.load('eigen')
+    conf.load('dart')
+    conf.load('hexapod_controller')
+
+    conf.check_eigen()
+    conf.check_dart()
+    conf.check_hexapod_controller()
+
+    if conf.env.CXX_NAME in ["icc", "icpc"]:
+        common_flags = "-Wall -std=c++11"
+        opt_flags = " -O3 -xHost  -march=native -mtune=native -unroll -fma -g"
+    elif conf.env.CXX_NAME in ["clang"]:
+        common_flags = "-Wall -std=c++11"
+        opt_flags = " -O3 -march=native -g"
+    else:
+        if int(conf.env['CC_VERSION'][0]+conf.env['CC_VERSION'][1]) < 47:
+            common_flags = "-Wall -std=c++0x"
+        else:
+            common_flags = "-Wall -std=c++11"
+        opt_flags = " -O3 -march=native -g"
+
+    all_flags = common_flags + opt_flags
+    conf.env['CXXFLAGS'] = conf.env['CXXFLAGS'] + all_flags.split(' ')
+    print conf.env['CXXFLAGS']
+
+
+def build(bld):
+    bld.stlib(features = 'cxx cxxstlib',
+              source = 'simu.cpp',
+              includes = '.',
+              uselib = 'DART EIGEN HEXAPOD_CONTROLLER',
+              target = 'hexapod_dart')
+
+    # if bld.get_env()['BUILD_GRAPHIC'] == True:
+    #     bld.get_env()['LIB_OSG'] = ['osg','osgGA', 'osgDB', 'osgUtil',
+    #                              'osgViewer', 'OpenThreads',
+    #                              'osgFX', 'osgShadow']
+
+    #     bld.stlib(features = 'cxx cxxstlib',
+    #               source = 'hexapod.cpp simu.cpp',
+    #               includes = '.',
+    #               uselib = 'BOOST BOOST_TIMER BOOST_SYSTEM BOOST_THREAD BOOST_SERIALIZATION BOOST_FILESYSTEM ODE ROBDYN EIGEN HEXAPOD_CONTROLLER OSG',
+    #               cxxflags = ['-DGRAPHIC'],
+    #               target = 'hexapod_robdyn_graphic')
+    #     # bld.program(features = 'cxx',
+    #     #           source = 'hexapod.cpp simu.cpp test.cpp',
+    #     #           includes = '.',
+    #     #           uselib = 'BOOST BOOST_TIMER BOOST_SYSTEM BOOST_THREAD BOOST_SERIALIZATION BOOST_FILESYSTEM ODE ROBDYN EIGEN HEXAPOD_CONTROLLER OSG',
+    #     #           cxxflags = ['-DGRAPHIC'],
+    #     #           target = 'test')
+
+    # bld.program(features = 'cxx',
+    #               source = 'hexapod.cpp simu.cpp test.cpp',
+    #               includes = '.',
+    #               uselib = 'BOOST BOOST_TIMER BOOST_SYSTEM BOOST_THREAD BOOST_SERIALIZATION BOOST_FILESYSTEM ODE ROBDYN EIGEN HEXAPOD_CONTROLLER',
+    #               target = 'test_plain')
+
+    # bld.install_files('${PREFIX}/include/hexapod_robdyn', 'hexapod.hpp')
+    # bld.install_files('${PREFIX}/include/hexapod_robdyn', 'simu.hpp')
+    # bld.install_files('${PREFIX}/lib', 'build/libhexapod_robdyn.a')
+
+    # if bld.get_env()['BUILD_GRAPHIC'] == True:
+    #     bld.install_files('${PREFIX}/lib', 'build/libhexapod_robdyn_graphic.a')
