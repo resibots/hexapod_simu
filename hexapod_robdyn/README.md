@@ -17,10 +17,10 @@
     - Compile with `./waf build`
     - Install with `./waf install`
 - [robdyn]: Dynamic simulator
-    - Get the code: `git clone https://github.com/jbmouret/robdyn.git`
-    - Configure for compilation/installation: `./waf configure`
-    - Compile with `./waf`
-    - Install robdyn on your computer: `sudo ./waf install`
+    - Get the code: `git clone https://github.com/resibots/robdyn.git`
+    - Configure for compilation/installation: `./waf configure --prefix=path_to_install`
+    - Compile with `./waf build`
+    - Install with `./waf install`
     - For more advanced options, look at [robdyn]'s repo.
 - [ODE]: Open Dynamics Engine
 - [Boost]: C++ Template Libraries
