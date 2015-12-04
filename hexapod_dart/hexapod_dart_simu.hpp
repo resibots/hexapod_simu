@@ -16,7 +16,7 @@ public:
 
     void run(double duration = 5.0, bool continuous = false, bool chain = false);
 
-    void next_step();
+    robot_t robot();
 
     double covered_distance();
 
@@ -39,8 +39,6 @@ public:
 protected:
     bool _stabilize_robot();
 
-    void _make_robot_init();
-
     std::vector<Eigen::Vector3d> _behavior_traj;
     std::vector<double> _rotation_traj;
     std::vector<double> _behavior_contact_0;
@@ -60,7 +58,6 @@ protected:
     bool _transf;
     double _old_t;
     int _old_index;
-    bool _init;
     double _step;
 };
 

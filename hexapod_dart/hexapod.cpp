@@ -1,25 +1,27 @@
 #include <hexapod.hpp>
+#include <string>
+#include <fstream>
+#include <streambuf>
 
 namespace robot {
-	Hexapod::Hexapod(std::string urdf_file, std::vector<int> broken_legs) : _broken_legs(broken_legs)
-	{
-		assert(_load_urdf(urdf_file));
-		// TO-DO: remove broken legs from skeleton
-	}
+    Hexapod::Hexapod(std::string urdf_file, std::vector<int> broken_legs) : _broken_legs(broken_legs)
+    {
+        assert(_load_urdf(urdf_file));
+        // TO-DO: remove broken legs from skeleton
+    }
 
-	Hexapod::Hexapod(dart::dynamics::SkeletonPtr skeleton, std::vector<int> broken_legs) :
-		_skeleton(skeleton),
-		_broken_legs(broken_legs)
-	{
-		// TO-DO: remove broken legs from skeleton
-	}
+    Hexapod::Hexapod(dart::dynamics::SkeletonPtr skeleton, std::vector<int> broken_legs) : _skeleton(skeleton),
+                                                                                           _broken_legs(broken_legs)
+    {
+        // TO-DO: remove broken legs from skeleton
+    }
 
-	std::shared_ptr<Hexapod> Hexapod::clone() const
-	{
-		return std::make_shared<Hexapod>(_skeleton->clone(), _broken_legs);
-	}
+    std::shared_ptr<Hexapod> Hexapod::clone() const
+    {
+        return std::make_shared<Hexapod>(_skeleton->clone(), _broken_legs);
+    }
 
-	void Hexapod::move_joints(const std::vector<double>& angles)
+    void Hexapod::move_joints(const std::vector<double>& angles)
     {
         // TO-DO: Send commands to skeleton joints
     }
@@ -46,19 +48,22 @@ namespace robot {
 
     bool Hexapod::_load_urdf(std::string urdf_file)
     {
-		// Load the Skeleton from a file
-		dart::utils::DartLoader loader;
-		_skeleton = loader.parseSkeleton(urdf_file);
-		if (_skeleton == nullptr)
-			return false;
-		_skeleton->setName("hexapod");
+        // Load file into string
+        std::ifstream t(urdf_file);
+        std::string str((std::istreambuf_iterator<char>(t)),
+            std::istreambuf_iterator<char>());
+        // Load the Skeleton from a file
+        dart::utils::DartLoader loader;
+        _skeleton = loader.parseSkeletonString(str, "");
+        if (_skeleton == nullptr)
+            return false;
+        _skeleton->setName("hexapod");
 
-		// Set joint limits
-		for(size_t i = 0; i < _skeleton->getNumJoints(); ++i)
-			_skeleton->getJoint(i)->setPositionLimitEnforced(true);
+        // Set joint limits
+        for (size_t i = 0; i < _skeleton->getNumJoints(); ++i)
+            _skeleton->getJoint(i)->setPositionLimitEnforced(true);
 
-		// _skeleton->setPosition(5, 0.1);
-		return true;
+        // _skeleton->setPosition(5, 0.1);
+        return true;
     }
-
 }
