@@ -74,7 +74,7 @@ def check_hexapod_robdyn(conf):
 	try:
 		conf.start_msg('Checking for hexapod_robdyn includes')
 		res = conf.find_file('hexapod.hpp', includes_check)
-		res = res and conf.find_file('simu.hpp', includes_check)
+		res = res and conf.find_file('hexapod_robdyn_simu.hpp', includes_check)
 		conf.end_msg('ok')
 		conf.start_msg('Checking for hexapod_robdyn libs')
 		res = res and conf.find_file('libhexapod_robdyn.a', libs_check)
@@ -96,11 +96,11 @@ Then in your C++ code you would have something like the following:
 
 ```cpp
 // previous includes
-#include <simu.hpp>
+#include <hexapod_robdyn_simu.hpp>
 
 // rest of code
 
-Simu simu(controller_parameters, robot_ptr);
+HexapodRobdynSimu simu(controller_parameters, robot_ptr);
 simu.run(duration_in_secs);
 
 // rest of code

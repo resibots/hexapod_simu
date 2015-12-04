@@ -22,15 +22,15 @@
 #include <boost/config.hpp>
 
 
-class Simu {
+class HexapodRobdynSimu {
 public:
     BOOST_STATIC_CONSTEXPR double step = 0.015;
     typedef boost::shared_ptr<robot::Hexapod> robot_t;
     typedef std::vector<double> ctrl_t;
 
-    Simu(const ctrl_t& ctrl, const robot_t& robot, bool transf = false, double angle = 0);
+    HexapodRobdynSimu(const ctrl_t& ctrl, const robot_t& robot, bool transf = false, double angle = 0);
 
-    ~Simu();
+    ~HexapodRobdynSimu();
 
     void run(double duration = 5.0, bool continuous = false, bool chain = false);
 

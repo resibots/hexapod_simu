@@ -1,5 +1,5 @@
 #include <iostream>
-#include <simu.hpp>
+#include <hexapod_robdyn_simu.hpp>
 
 int main()
 {
@@ -32,7 +32,7 @@ int main()
     std::vector<double> ctrl;
     ctrl = {1, 0, 0.5, 0.25, 0.25, 0.5, 1, 0.5, 0.5, 0.25, 0.75, 0.5, 1, 0, 0.5, 0.25, 0.25, 0.5, 1, 0, 0.5, 0.25, 0.75, 0.5, 1, 0.5, 0.5, 0.25, 0.25, 0.5, 1, 0, 0.5, 0.25, 0.75, 0.5};
 
-    Simu simu(ctrl, global_robot);
+    HexapodRobdynSimu simu(ctrl, global_robot);
     for(int i=0;i<167;i++)
         simu.run(0.015, true);
 

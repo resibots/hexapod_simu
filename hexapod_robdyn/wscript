@@ -65,7 +65,7 @@ def configure(conf):
 
 def build(bld):
     bld.stlib(features = 'cxx cxxstlib',
-              source = 'hexapod.cpp simu.cpp',
+              source = 'hexapod.cpp hexapod_robdyn_simu.cpp',
               includes = '.',
               uselib = 'BOOST BOOST_TIMER BOOST_SYSTEM BOOST_THREAD BOOST_SERIALIZATION BOOST_FILESYSTEM ODE ROBDYN EIGEN HEXAPOD_CONTROLLER',
               target = 'hexapod_robdyn')
@@ -76,26 +76,26 @@ def build(bld):
                                  'osgFX', 'osgShadow']
 
         bld.stlib(features = 'cxx cxxstlib',
-                  source = 'hexapod.cpp simu.cpp',
+                  source = 'hexapod.cpp hexapod_robdyn_simu.cpp',
                   includes = '.',
                   uselib = 'BOOST BOOST_TIMER BOOST_SYSTEM BOOST_THREAD BOOST_SERIALIZATION BOOST_FILESYSTEM ODE ROBDYN EIGEN HEXAPOD_CONTROLLER OSG',
                   cxxflags = ['-DGRAPHIC'],
                   target = 'hexapod_robdyn_graphic')
         # bld.program(features = 'cxx',
-        #           source = 'hexapod.cpp simu.cpp test.cpp',
+        #           source = 'hexapod.cpp hexapod_robdyn_simu.cpp test.cpp',
         #           includes = '.',
         #           uselib = 'BOOST BOOST_TIMER BOOST_SYSTEM BOOST_THREAD BOOST_SERIALIZATION BOOST_FILESYSTEM ODE ROBDYN EIGEN HEXAPOD_CONTROLLER OSG',
         #           cxxflags = ['-DGRAPHIC'],
         #           target = 'test')
 
     # bld.program(features = 'cxx',
-    #               source = 'hexapod.cpp simu.cpp test.cpp',
+    #               source = 'hexapod.cpp hexapod_robdyn_simu.cpp test.cpp',
     #               includes = '.',
     #               uselib = 'BOOST BOOST_TIMER BOOST_SYSTEM BOOST_THREAD BOOST_SERIALIZATION BOOST_FILESYSTEM ODE ROBDYN EIGEN HEXAPOD_CONTROLLER',
     #               target = 'test_plain')
 
     bld.install_files('${PREFIX}/include/hexapod_robdyn', 'hexapod.hpp')
-    bld.install_files('${PREFIX}/include/hexapod_robdyn', 'simu.hpp')
+    bld.install_files('${PREFIX}/include/hexapod_robdyn', 'hexapod_robdyn_simu.hpp')
     bld.install_files('${PREFIX}/lib', 'build/libhexapod_robdyn.a')
 
     if bld.get_env()['BUILD_GRAPHIC'] == True:

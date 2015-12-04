@@ -1,14 +1,12 @@
-//#define GRAPHIC
-
 #ifdef GRAPHIC
 #include <renderer/osg_visitor.hh>
 #endif
 
 #include <numeric>
-#include <simu.hpp>
+#include <hexapod_robdyn_simu.hpp>
 
 
-Simu::Simu(const ctrl_t& ctrl, const robot_t& robot, bool transf, double angle) :
+HexapodRobdynSimu::HexapodRobdynSimu(const ctrl_t& ctrl, const robot_t& robot, bool transf, double angle) :
      _controller(ctrl, robot->broken_legs()),
      _covered_distance(0.0),
      _energy(0.0),
@@ -29,14 +27,14 @@ Simu::Simu(const ctrl_t& ctrl, const robot_t& robot, bool transf, double angle) 
     }
 }
 
-Simu::~Simu()
+HexapodRobdynSimu::~HexapodRobdynSimu()
 {
     // we have to clean in the good order
     _robot.reset();
     _env.reset();
 }
 
-void Simu::run(double duration, bool continuous, bool chain)
+void HexapodRobdynSimu::run(double duration, bool continuous, bool chain)
 {
     try
     {
@@ -196,7 +194,7 @@ void Simu::run(double duration, bool continuous, bool chain)
     // #endif
 }
 
-void Simu::next_step()
+void HexapodRobdynSimu::next_step()
 {
     _robot->next_step(step);
     _env->next_step(step);
@@ -206,17 +204,17 @@ void Simu::next_step()
 #endif
 }
 
-Simu::robot_t Simu::robot()
+HexapodRobdynSimu::robot_t HexapodRobdynSimu::robot()
 {
     return _robot;
 }
 
-double Simu::covered_distance()
+double HexapodRobdynSimu::covered_distance()
 {
     return _covered_distance;
 }
 
-std::vector<double> Simu::get_duty_cycle()
+std::vector<double> HexapodRobdynSimu::get_duty_cycle()
 {
     std::vector<double> results;
     double sum = 0;
@@ -259,27 +257,27 @@ std::vector<double> Simu::get_duty_cycle()
     return results;
 }
 
-double Simu::energy()
+double HexapodRobdynSimu::energy()
 {
     return _energy;
 }
 
-double Simu::direction()
+double HexapodRobdynSimu::direction()
 {
     return _direction;
 }
 
-double Simu::arrival_angle()
+double HexapodRobdynSimu::arrival_angle()
 {
     return _arrival_angle;
 }
 
-Eigen::Vector3d Simu::final_pos()
+Eigen::Vector3d HexapodRobdynSimu::final_pos()
 {
     return _final_pos;
 }
 
-void Simu::write_contact(std::string const name)
+void HexapodRobdynSimu::write_contact(std::string const name)
 {
 
     std::ofstream workingFile(name.c_str());
@@ -294,7 +292,7 @@ void Simu::write_contact(std::string const name)
     }
 }
 
-void Simu::write_traj(std::string const name)
+void HexapodRobdynSimu::write_traj(std::string const name)
 {
 
     std::ofstream workingFile(name.c_str());
@@ -309,17 +307,17 @@ void Simu::write_traj(std::string const name)
     }
 }
 
-const std::vector<Eigen::Vector3d>& Simu::get_traj()
+const std::vector<Eigen::Vector3d>& HexapodRobdynSimu::get_traj()
 {
     return _behavior_traj;
 }
 
-const std::vector<double>& Simu::get_rot_traj()
+const std::vector<double>& HexapodRobdynSimu::get_rot_traj()
 {
     return _rotation_traj;
 }
 
-const std::vector<double>& Simu::get_contact(int i)
+const std::vector<double>& HexapodRobdynSimu::get_contact(int i)
 {
     switch (i) {
     case 0:
@@ -345,7 +343,7 @@ const std::vector<double>& Simu::get_contact(int i)
     return _behavior_contact_0;
 }
 
-bool Simu::_stabilize_robot()
+bool HexapodRobdynSimu::_stabilize_robot()
 {
     robot_t rob = this->robot();
 
@@ -370,7 +368,7 @@ bool Simu::_stabilize_robot()
     return (stabilized);
 }
 
-void Simu::_make_robot_init()
+void HexapodRobdynSimu::_make_robot_init()
 {
     robot_t rob = this->robot();
     Eigen::Vector3d rot = rob->rot();
@@ -388,7 +386,7 @@ void Simu::_make_robot_init()
     _old_index = 0;
 }
 
-boost::filesystem::path Simu::_create_database_folder()
+boost::filesystem::path HexapodRobdynSimu::_create_database_folder()
 {
     boost::filesystem::path thePath = boost::filesystem::current_path();
     boost::filesystem::path newDir = thePath / "database";
@@ -405,7 +403,7 @@ boost::filesystem::path Simu::_create_database_folder()
     return newDir;
 }
 
-boost::filesystem::path Simu::_create_exp_folder()
+boost::filesystem::path HexapodRobdynSimu::_create_exp_folder()
 {
     struct tm today;
     time_t maintenant;
