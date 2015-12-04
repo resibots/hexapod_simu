@@ -3,16 +3,16 @@
 
 #include <dart/dart.h>
 #include <Eigen/Core>
+#include <hexapod.hpp>
 #include <hexapod_controller_simple.hpp>
 
-class Simu {
+class HexapodDARTSimu {
 public:
-    static constexpr double step = 0.015;
-    typedef std::vector<double> ctrl_t;
+    using robot_t = std::shared_ptr<robot::Hexapod>;
 
-    Simu(const ctrl_t& ctrl, const std::vector<int>& broken_legs);
+    HexapodDARTSimu(const std::vector<double>& ctrl, robot_t robot);
 
-    ~Simu();
+    ~HexapodDARTSimu();
 
     void run(double duration = 5.0, bool continuous = false, bool chain = false);
 
@@ -26,6 +26,8 @@ public:
     double direction();
     double arrival_angle();
     Eigen::Vector3d final_pos();
+
+    double step();
 
     HexapodControllerSimple& controller() { return _controller; }
 
@@ -48,6 +50,7 @@ protected:
     std::vector<double> _behavior_contact_4;
     std::vector<double> _behavior_contact_5;
     HexapodControllerSimple _controller;
+    robot_t _robot;
     Eigen::Vector3d _final_pos;
     double _direction;
     double _arrival_angle;
@@ -58,7 +61,7 @@ protected:
     double _old_t;
     int _old_index;
     bool _init;
-    const double _angle;
+    double _step;
 };
 
 #endif
