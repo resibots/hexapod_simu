@@ -79,9 +79,9 @@ def check_hexapod_robdyn(conf):
 		conf.start_msg('Checking for hexapod_robdyn libs')
 		res = res and conf.find_file('libhexapod_robdyn.a', libs_check)
 		conf.end_msg('ok')
-		conf.env.INCLUDES_HEXAPOD_CONTROLLER = includes_check
-		conf.env.LIBPATH_HEXAPOD_CONTROLLER = libs_check
-		conf.env.LIB_HEXAPOD_CONTROLLER = ['hexapod_robdyn']
+		conf.env.INCLUDES_HEXAPOD_ROBDYN = includes_check
+		conf.env.LIBPATH_HEXAPOD_ROBDYN = libs_check
+		conf.env.LIB_HEXAPOD_ROBDYN = ['hexapod_robdyn']
 		conf.start_msg('Checking for hexapod_robdyn graphics libs')
 		res = res and conf.find_file('libhexapod_robdyn_graphic.a', libs_check)
 		conf.end_msg('ok')
@@ -90,6 +90,17 @@ def check_hexapod_robdyn(conf):
 		conf.end_msg('Not found', 'RED')
 		return
 	return 1
+```
+
+Also, you need to include and link to Boost, ODE and robdyn libraries. For example files you can check the files in `waf_tools` directory and the `wscript` file of this project. Here's an example build command in a `wscript` file:
+
+```python
+bld.program(features = 'cxx',
+          source = 'test.cpp',
+          includes = '.',
+          uselib = 'BOOST BOOST_TIMER BOOST_SYSTEM BOOST_THREAD BOOST_SERIALIZATION BOOST_FILESYSTEM ODE ROBDYN EIGEN HEXAPOD_ROBDYN HEXAPOD_CONTROLLER OSG',
+          cxxflags = ['-DGRAPHIC'],
+          target = 'test')
 ```
 
 Then in your C++ code you would have something like the following:
