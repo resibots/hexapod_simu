@@ -39,6 +39,8 @@ public:
 protected:
     bool _stabilize_robot();
 
+    void _add_floor();
+
     std::vector<Eigen::Vector3d> _behavior_traj;
     std::vector<double> _rotation_traj;
     std::vector<double> _behavior_contact_0;

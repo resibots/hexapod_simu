@@ -12,6 +12,8 @@ namespace robot {
 
         std::shared_ptr<Hexapod> clone() const;
 
+        dart::dynamics::SkeletonPtr skeleton();
+
         void move_joints(const std::vector<double>& angles);
 
         bool is_broken(int leg);

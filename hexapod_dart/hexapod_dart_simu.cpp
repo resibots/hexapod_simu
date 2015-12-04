@@ -9,6 +9,8 @@ HexapodDARTSimu::HexapodDARTSimu(const std::vector<double>& ctrl, robot_t robot)
 {
     // TO-DO Initialization of world/robot
     _robot = robot;
+    _add_floor();
+    _world->addSkeleton(_robot->skeleton());
 }
 
 HexapodDARTSimu::~HexapodDARTSimu()
@@ -160,4 +162,33 @@ const std::vector<double>& HexapodDARTSimu::get_contact(int i)
     }
     assert(false);
     return _behavior_contact_0;
+}
+
+void HexapodDARTSimu::_add_floor()
+{
+    // We do not want 2 floors!
+    if (_world->getSkeleton("floor") != nullptr)
+        return;
+
+    dart::dynamics::SkeletonPtr floor = dart::dynamics::Skeleton::create("floor");
+
+    // Give the floor a body
+    dart::dynamics::BodyNodePtr body = floor->createJointAndBodyNodePair<dart::dynamics::WeldJoint>(nullptr).second;
+
+    // Give the body a shape
+    double floor_width = 10.0;
+    double floor_height = 0.1;
+    std::shared_ptr<dart::dynamics::BoxShape> box(
+        new dart::dynamics::BoxShape(Eigen::Vector3d(floor_width, floor_width, floor_height)));
+    box->setColor(dart::Color::Black());
+
+    body->addVisualizationShape(box);
+    body->addCollisionShape(box);
+
+    // Put the body into position
+    Eigen::Isometry3d tf(Eigen::Isometry3d::Identity());
+    tf.translation() = Eigen::Vector3d(0.0, 0.0, -floor_height / 2.0);
+    body->getParentJoint()->setTransformFromParentBodyNode(tf);
+
+    _world->addSkeleton(floor);
 }

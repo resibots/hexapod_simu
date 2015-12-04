@@ -21,6 +21,11 @@ namespace robot {
         return std::make_shared<Hexapod>(_skeleton->clone(), _broken_legs);
     }
 
+    dart::dynamics::SkeletonPtr Hexapod::skeleton()
+    {
+        return _skeleton;
+    }
+
     void Hexapod::move_joints(const std::vector<double>& angles)
     {
         // TO-DO: Send commands to skeleton joints
