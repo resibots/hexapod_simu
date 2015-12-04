@@ -77,13 +77,13 @@ def check_hexapod_robdyn(conf):
 		res = res and conf.find_file('simu.hpp', includes_check)
 		conf.end_msg('ok')
 		conf.start_msg('Checking for hexapod_robdyn libs')
-		res = res and conf.find_file('libhexapod_robdyn.so', libs_check)
+		res = res and conf.find_file('libhexapod_robdyn.a', libs_check)
 		conf.end_msg('ok')
 		conf.env.INCLUDES_HEXAPOD_CONTROLLER = includes_check
 		conf.env.LIBPATH_HEXAPOD_CONTROLLER = libs_check
 		conf.env.LIB_HEXAPOD_CONTROLLER = ['hexapod_robdyn']
 		conf.start_msg('Checking for hexapod_robdyn graphics libs')
-		res = res and conf.find_file('libhexapod_robdyn_graphic.so', libs_check)
+		res = res and conf.find_file('libhexapod_robdyn_graphic.a', libs_check)
 		conf.end_msg('ok')
 		conf.env.LIB_HEXAPOD_CONTROLLER.append('hexapod_robdyn_graphic')
 	except:
