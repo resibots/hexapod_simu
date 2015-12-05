@@ -28,6 +28,7 @@ public:
     Eigen::Vector3d final_pos();
 
     double step();
+    void set_step(double step);
 
     HexapodControl& controller();
 
@@ -57,10 +58,7 @@ protected:
     double _covered_distance;
     double _energy;
     dart::simulation::WorldPtr _world;
-    bool _transf;
-    double _old_t;
     int _old_index;
-    double _step;
 };
 
 #endif

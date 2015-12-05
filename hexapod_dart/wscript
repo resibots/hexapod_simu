@@ -11,6 +11,7 @@ blddir = 'build'
 
 from waflib.Build import BuildContext
 import dart
+import boost
 import eigen
 import hexapod_controller
 
@@ -18,6 +19,7 @@ import hexapod_controller
 def options(opt):
     opt.load('compiler_cxx')
     opt.load('compiler_c')
+    opt.load('boost')
     opt.load('eigen')
     opt.load('dart')
     opt.load('hexapod_controller')
@@ -28,10 +30,12 @@ def configure(conf):
 
     conf.load('compiler_cxx')
     conf.load('compiler_c')
+    conf.load('boost')
     conf.load('eigen')
     conf.load('dart')
     conf.load('hexapod_controller')
 
+    conf.check_boost(lib='regex system', min_version='1.46')
     conf.check_eigen()
     conf.check_dart()
     conf.check_hexapod_controller()
@@ -58,7 +62,7 @@ def build(bld):
     bld.stlib(features = 'cxx cxxstlib',
               source = 'src/hexapod.cpp src/hexapod_control.cpp src/hexapod_dart_simu.cpp',
               includes = '. ./src',
-              uselib = 'DART EIGEN HEXAPOD_CONTROLLER',
+              uselib = 'BOOST BOOST_SYSTEM BOOST_REGEX DART EIGEN HEXAPOD_CONTROLLER',
               target = 'hexapod_dart')
 
     # if bld.get_env()['BUILD_GRAPHIC'] == True:
@@ -79,11 +83,11 @@ def build(bld):
     #     #           cxxflags = ['-DGRAPHIC'],
     #     #           target = 'test')
 
-    # bld.program(features = 'cxx',
-    #               source = 'src/hexapod.cpp src/hexapod_control.cpp src/hexapod_dart_simu.cpp src/test.cpp',
-    #               includes = '.',
-    #               uselib = 'BOOST BOOST_TIMER BOOST_SYSTEM BOOST_THREAD BOOST_SERIALIZATION BOOST_FILESYSTEM ODE ROBDYN EIGEN HEXAPOD_CONTROLLER',
-    #               target = 'test_plain')
+    bld.program(features = 'cxx',
+                  source = 'src/hexapod.cpp src/hexapod_control.cpp src/hexapod_dart_simu.cpp src/test.cpp',
+                  includes = '. ./src',
+                  uselib = 'BOOST BOOST_SYSTEM BOOST_REGEX DART EIGEN HEXAPOD_CONTROLLER',
+                  target = 'test_plain')
 
     # bld.install_files('${PREFIX}/include/hexapod_dart', 'src/hexapod_dart_simu.hpp')
     # bld.install_files('${PREFIX}/lib', 'build/libhexapod_dart.a')

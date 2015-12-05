@@ -1,6 +1,6 @@
 #include <hexapod_control.hpp>
 
-HexapodControl::HexapodControl(const std::vector<double>& ctrl, robot_t robot) : _controller(ctrl, robot->broken_legs())
+HexapodControl::HexapodControl(const std::vector<double>& ctrl, robot_t robot) : _controller(ctrl, robot->broken_legs()), _robot(robot)
 {
     _target_positions = _robot->skeleton()->getPositions();
 

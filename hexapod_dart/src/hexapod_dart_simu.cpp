@@ -4,12 +4,12 @@ HexapodDARTSimu::HexapodDARTSimu(const std::vector<double>& ctrl, robot_t robot)
                                                                                    _covered_distance(0.0),
                                                                                    _energy(0.0),
                                                                                    _world(std::make_shared<dart::simulation::World>()),
-                                                                                   _old_t(0.0),
                                                                                    _old_index(0)
 {
     _robot = robot;
     _add_floor();
     _world->addSkeleton(_robot->skeleton());
+    _world->setTimeStep(0.015);
 }
 
 HexapodDARTSimu::~HexapodDARTSimu()
@@ -22,11 +22,11 @@ HexapodDARTSimu::~HexapodDARTSimu()
 void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
 {
     robot_t rob = this->robot();
-    double t = _old_t;
+    double old_t = _world->getTime();
     int index = _old_index;
-    while ((t - _old_t) < duration) {
+    while ((_world->getTime() - old_t) < duration) {
         // check if world's time can be used
-        _controller.update(chain ? (t - _old_t) : t);
+        _controller.update(chain ? (_world->getTime() - old_t) : _world->getTime());
         // TO-DO: check if robot base collides with ground
         _world->step();
 
@@ -43,16 +43,20 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
         _rotation_traj.push_back(atan2(cos(rot[2]) * sin(rot[1]) * sin(rot[0]) + sin(rot[2]) * cos(rot[0]), cos(rot[2]) * cos(rot[1])) * 180 / M_PI);
 
         ++index;
-        t += _step;
     }
-
-    _old_t = t;
     _old_index = index;
 
     if (!continuous)
         _stabilize_robot();
 
+    auto pos_and_rot = rob->skeleton()->getPositions();
+
+    Eigen::Vector3d pos = {pos_and_rot(3), pos_and_rot(4), pos_and_rot(5)};
+    Eigen::Vector3d rot = {pos_and_rot(0), pos_and_rot(1), pos_and_rot(2)};
+
     // TO-DO: compute covered_distance, arrival_angle
+    _covered_distance = pos(0);
+    _arrival_angle = atan2(cos(rot[2]) * sin(rot[1]) * sin(rot[0]) + sin(rot[2]) * cos(rot[0]), cos(rot[2]) * cos(rot[1])) * 180 / M_PI;
 }
 
 HexapodDARTSimu::robot_t HexapodDARTSimu::robot()
@@ -130,7 +134,14 @@ Eigen::Vector3d HexapodDARTSimu::final_pos()
 
 double HexapodDARTSimu::step()
 {
-    return _step;
+    assert(_world!=nullptr);
+    return _world->getTimeStep();
+}
+
+void HexapodDARTSimu::set_step(double step)
+{
+    assert(_world!=nullptr);
+    _world->setTimeStep(step);
 }
 
 HexapodControl& HexapodDARTSimu::controller()

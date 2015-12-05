@@ -68,7 +68,7 @@ namespace robot {
         for (size_t i = 0; i < _skeleton->getNumJoints(); ++i)
             _skeleton->getJoint(i)->setPositionLimitEnforced(true);
 
-        // _skeleton->setPosition(5, 0.1);
+        _skeleton->setPosition(5, 0.1);
         return true;
     }
 }
