@@ -4,7 +4,7 @@
 #include <dart/dart.h>
 #include <Eigen/Core>
 #include <hexapod.hpp>
-#include <hexapod_controller_simple.hpp>
+#include <hexapod_control.hpp>
 
 class HexapodDARTSimu {
 public:
@@ -29,7 +29,7 @@ public:
 
     double step();
 
-    HexapodControllerSimple& controller() { return _controller; }
+    HexapodControl& controller();
 
     const std::vector<Eigen::Vector3d>& get_traj();
     const std::vector<double>& get_rot_traj();
@@ -49,7 +49,7 @@ protected:
     std::vector<double> _behavior_contact_3;
     std::vector<double> _behavior_contact_4;
     std::vector<double> _behavior_contact_5;
-    HexapodControllerSimple _controller;
+    HexapodControl _controller;
     robot_t _robot;
     Eigen::Vector3d _final_pos;
     double _direction;

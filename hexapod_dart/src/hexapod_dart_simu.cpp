@@ -1,13 +1,12 @@
 #include <hexapod_dart_simu.hpp>
 
-HexapodDARTSimu::HexapodDARTSimu(const std::vector<double>& ctrl, robot_t robot) : _controller(ctrl, robot->broken_legs()),
+HexapodDARTSimu::HexapodDARTSimu(const std::vector<double>& ctrl, robot_t robot) : _controller(ctrl, robot),
                                                                                    _covered_distance(0.0),
                                                                                    _energy(0.0),
                                                                                    _world(std::make_shared<dart::simulation::World>()),
                                                                                    _old_t(0.0),
                                                                                    _old_index(0)
 {
-    // TO-DO Initialization of world/robot
     _robot = robot;
     _add_floor();
     _world->addSkeleton(_robot->skeleton());
@@ -24,25 +23,27 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
 {
     robot_t rob = this->robot();
     double t = _old_t;
-    std::vector<double> angles;
     int index = _old_index;
     while ((t - _old_t) < duration) {
-        angles = _controller.pos(chain ? (t - _old_t) : t);
-        // TO-DO: Add actual controller
-        // rob->move_joints(angles);
-
+        // check if world's time can be used
+        _controller.update(chain ? (t - _old_t) : t);
         // TO-DO: check if robot base collides with ground
-
-        if (index % 2 == 0)
-            // TO-DO: get contacts for feet
-
-            // TO-DO: get COM position and push it in _behavior_traj
-            // TO-DO: get COM rotation and push it in _rotation_traj
-
-            t += _step;
         _world->step();
 
+        if (index % 2 == 0) {
+            // TO-DO: get contacts for feet
+        }
+
+        auto pos_and_rot = rob->skeleton()->getPositions();
+
+        Eigen::Vector3d pos = {pos_and_rot(3), pos_and_rot(4), pos_and_rot(5)};
+        Eigen::Vector3d rot = {pos_and_rot(0), pos_and_rot(1), pos_and_rot(2)};
+
+        _behavior_traj.push_back(pos);
+        _rotation_traj.push_back(atan2(cos(rot[2]) * sin(rot[1]) * sin(rot[0]) + sin(rot[2]) * cos(rot[0]), cos(rot[2]) * cos(rot[1])) * 180 / M_PI);
+
         ++index;
+        t += _step;
     }
 
     _old_t = t;
@@ -132,6 +133,11 @@ double HexapodDARTSimu::step()
     return _step;
 }
 
+HexapodControl& HexapodDARTSimu::controller()
+{
+    return _controller;
+}
+
 const std::vector<Eigen::Vector3d>& HexapodDARTSimu::get_traj()
 {
     return _behavior_traj;
@@ -170,8 +176,8 @@ const std::vector<double>& HexapodDARTSimu::get_contact(int i)
 
 bool HexapodDARTSimu::_stabilize_robot()
 {
-	// TO-DO: stabilize robot
-	return true;
+    // TO-DO: stabilize robot
+    return true;
 }
 
 void HexapodDARTSimu::_add_floor()
