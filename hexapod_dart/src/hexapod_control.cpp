@@ -73,7 +73,7 @@ void HexapodControl::set_commands()
     Eigen::VectorXd q_err = _target_positions - q;
 
     double gain = 1.0 / (DART_PI * _robot->skeleton()->getTimeStep());
-    Eigen::VectorXd vel = q_err*gain;
+    Eigen::VectorXd vel = q_err * gain;
     vel = vel.cwiseProduct(_p);
 
     _robot->skeleton()->setCommands(vel);

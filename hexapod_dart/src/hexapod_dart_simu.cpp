@@ -150,13 +150,13 @@ Eigen::Vector3d HexapodDARTSimu::final_pos()
 
 double HexapodDARTSimu::step()
 {
-    assert(_world!=nullptr);
+    assert(_world != nullptr);
     return _world->getTimeStep();
 }
 
 void HexapodDARTSimu::set_step(double step)
 {
-    assert(_world!=nullptr);
+    assert(_world != nullptr);
     _world->setTimeStep(step);
 }
 

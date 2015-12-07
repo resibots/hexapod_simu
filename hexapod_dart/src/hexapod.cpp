@@ -10,8 +10,7 @@ namespace robot {
         _set_broken(broken_legs);
     }
 
-    Hexapod::Hexapod(dart::dynamics::SkeletonPtr skeleton, std::vector<int> broken_legs) : _skeleton(skeleton),
-                                                                                           _broken_legs(broken_legs)
+    Hexapod::Hexapod(dart::dynamics::SkeletonPtr skeleton, std::vector<int> broken_legs) : _skeleton(skeleton)
     {
         assert(_skeleton != nullptr);
         _set_broken(broken_legs);
@@ -56,8 +55,7 @@ namespace robot {
         tmp_skel->setName("hexapod");
 
         // Set joint limits/actuator types
-        for (size_t i = 1; i < tmp_skel->getNumJoints(); ++i)
-        {
+        for (size_t i = 1; i < tmp_skel->getNumJoints(); ++i) {
             tmp_skel->getJoint(i)->setPositionLimitEnforced(true);
             tmp_skel->getJoint(i)->setActuatorType(dart::dynamics::Joint::VELOCITY);
         }
@@ -76,18 +74,15 @@ namespace robot {
     void Hexapod::_remove_legs()
     {
         std::vector<int> to_remove;
-        for(int i=1;i<_skeleton->getNumJoints();i+=3)
-        {
-            std::vector<int>::iterator it = std::find(_broken_legs.begin(), _broken_legs.end(), i/3);
-            if(it != _broken_legs.end())
-            {
+        for (int i = 1; i < _skeleton->getNumJoints(); i += 3) {
+            std::vector<int>::iterator it = std::find(_broken_legs.begin(), _broken_legs.end(), i / 3);
+            if (it != _broken_legs.end()) {
                 to_remove.push_back(i);
             }
         }
 
-        for(int i=0;i<to_remove.size();i++)
-        {
-            auto tmp = _skeleton->getJoint(to_remove[i]-i*3)->getChildBodyNode();
+        for (int i = 0; i < to_remove.size(); i++) {
+            auto tmp = _skeleton->getJoint(to_remove[i] - i * 3)->getChildBodyNode();
             tmp->removeAllCollisionShapes();
             tmp->removeAllVisualizationShapes();
             tmp->remove();

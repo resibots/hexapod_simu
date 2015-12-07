@@ -3,7 +3,7 @@
 
 int main()
 {
-	std::vector<int> brk = {};
+    std::vector<int> brk = {};
 
     auto global_robot = std::make_shared<robot::Hexapod>("/home/kchatzil/Workspaces/DART/source/dart_test/pexod.urdf", brk);
 
@@ -18,8 +18,8 @@ int main()
     // // ctrl = {0.75, 1.0, 0.8, 0.8, 0.1, 0.95, 0.7, 0.2, 0.35, 0.85, 0.85, 0.95, 0.7, 1.0, 0.8, 0.7, 0.2, 1.0, 1.0, 0.7, 0.45, 0.15, 0.15, 0.75, 1.0, 0.15, 0.5, 0.1, 0.5, 0.85, 0.25, 0.1, 0.9, 0.2, 0.9, 0.9};
     // simu.controller().set_parameters(ctrl);
     simu.run(5);
-    std::cout<<simu.covered_distance()<<" "<<simu.arrival_angle()<<std::endl;
+    std::cout << simu.covered_distance() << " " << simu.arrival_angle() << std::endl;
 
     global_robot.reset();
-	return 0;
+    return 0;
 }
