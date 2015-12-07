@@ -64,9 +64,12 @@ namespace robot {
             return false;
         _skeleton->setName("hexapod");
 
-        // Set joint limits
-        for (size_t i = 0; i < _skeleton->getNumJoints(); ++i)
+        // Set joint limits/actuator types
+        for (size_t i = 1; i < _skeleton->getNumJoints(); ++i)
+        {
             _skeleton->getJoint(i)->setPositionLimitEnforced(true);
+            _skeleton->getJoint(i)->setActuatorType(dart::dynamics::Joint::VELOCITY);
+        }
 
         _skeleton->setPosition(5, 0.1);
         return true;

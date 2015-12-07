@@ -18,16 +18,17 @@ public:
 
     void update(double t);
 
-    void set_forces();
+    void set_commands();
 
 protected:
     HexapodControllerSimple _controller;
     robot_t _robot;
 
     Eigen::VectorXd _target_positions;
-    Eigen::MatrixXd _kp;
-    Eigen::MatrixXd _kd;
-    Eigen::VectorXd _forces;
+    // Eigen::MatrixXd _kp;
+    // Eigen::MatrixXd _kd;
+    Eigen::VectorXd _p;
+    // Eigen::VectorXd _forces;
 };
 
 #endif
