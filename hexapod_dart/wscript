@@ -88,8 +88,10 @@ def build(bld):
                   uselib = 'BOOST BOOST_SYSTEM BOOST_REGEX DART EIGEN HEXAPOD_CONTROLLER',
                   target = 'test_plain')
 
-    # bld.install_files('${PREFIX}/include/hexapod_dart', 'src/hexapod_dart_simu.hpp')
-    # bld.install_files('${PREFIX}/lib', 'build/libhexapod_dart.a')
+    bld.install_files('${PREFIX}/include/hexapod_dart', 'src/hexapod_dart_simu.hpp')
+    bld.install_files('${PREFIX}/include/hexapod_dart', 'src/hexapod.hpp')
+    bld.install_files('${PREFIX}/include/hexapod_dart', 'src/hexapod_control.hpp')
+    bld.install_files('${PREFIX}/lib', 'build/libhexapod_dart.a')
 
-    # if bld.get_env()['BUILD_GRAPHIC'] == True:
-    #     bld.install_files('${PREFIX}/lib', 'build/libhexapod_dart_graphic.a')
+    if bld.get_env()['BUILD_GRAPHIC'] == True:
+        bld.install_files('${PREFIX}/lib', 'build/libhexapod_dart_graphic.a')
