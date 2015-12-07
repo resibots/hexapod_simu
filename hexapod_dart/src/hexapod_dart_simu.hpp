@@ -6,6 +6,10 @@
 #include <hexapod.hpp>
 #include <hexapod_control.hpp>
 
+#ifdef GRAPHIC
+#include <osgDart/osgDart.h>
+#endif
+
 class HexapodDARTSimu {
 public:
     using robot_t = std::shared_ptr<robot::Hexapod>;
@@ -59,6 +63,10 @@ protected:
     double _energy;
     dart::simulation::WorldPtr _world;
     int _old_index;
+#ifdef GRAPHIC
+    osg::ref_ptr<osgDart::WorldNode> _osg_world_node;
+    osgDart::Viewer _osg_viewer;
+#endif
 };
 
 #endif

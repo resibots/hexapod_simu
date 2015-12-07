@@ -10,6 +10,13 @@ HexapodDARTSimu::HexapodDARTSimu(const std::vector<double>& ctrl, robot_t robot)
     _add_floor();
     _world->addSkeleton(_robot->skeleton());
     _world->setTimeStep(0.015);
+
+#ifdef GRAPHIC
+    _osg_world_node = new osgDart::WorldNode(_world);
+    _osg_world_node->simulate(true);
+    _osg_viewer.addWorldNode(_osg_world_node);
+    _osg_viewer.setUpViewInWindow(0, 0, 640, 480);
+#endif
 }
 
 HexapodDARTSimu::~HexapodDARTSimu()
@@ -24,11 +31,20 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
     robot_t rob = this->robot();
     double old_t = _world->getTime();
     int index = _old_index;
-    while ((_world->getTime() - old_t) < duration) {
+#ifdef GRAPHIC
+    while ((_world->getTime() - old_t) < duration && !_osg_viewer.done())
+#else
+    while ((_world->getTime() - old_t) < duration)
+#endif
+    {
         // check if world's time can be used
         _controller.update(chain ? (_world->getTime() - old_t) : _world->getTime());
         // TO-DO: check if robot base collides with ground
         _world->step();
+
+#ifdef GRAPHIC
+        _osg_viewer.frame();
+#endif
 
         if (index % 2 == 0) {
             // TO-DO: get contacts for feet
@@ -207,7 +223,7 @@ void HexapodDARTSimu::_add_floor()
     double floor_height = 0.1;
     std::shared_ptr<dart::dynamics::BoxShape> box(
         new dart::dynamics::BoxShape(Eigen::Vector3d(floor_width, floor_width, floor_height)));
-    box->setColor(dart::Color::Black());
+    box->setColor(dart::Color::Gray());
 
     body->addVisualizationShape(box);
     body->addCollisionShape(box);

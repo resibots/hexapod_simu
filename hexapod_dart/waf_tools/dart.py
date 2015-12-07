@@ -50,6 +50,7 @@ def check_dart(conf):
 		res = res and conf.find_file('libosgDart.so', libs_check)
 		conf.end_msg('ok')
 		conf.env.LIB_DART.append('osgDart')
+		conf.get_env()['BUILD_GRAPHIC'] = True
 	except:
 		conf.end_msg('Not found', 'RED')
 		return
