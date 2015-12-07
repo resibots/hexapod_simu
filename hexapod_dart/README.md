@@ -36,6 +36,56 @@
 Add hexapod_dart as an external library using the following script:
 
 ```python
+#! /usr/bin/env python
+# encoding: utf-8
+# Konstantinos Chatzilygeroudis - 2015
+
+"""
+Quick n dirty hexapod_dart detection
+"""
+
+import os
+from waflib.Configure import conf
+
+
+def options(opt):
+	opt.add_option('--hexapod_dart', type='string', help='path to hexapod_dart', dest='hexapod_dart')
+
+@conf
+def check_hexapod_dart(conf):
+	includes_check = ['/usr/local/include/hexapod_dart', '/usr/include/hexapod_dart']
+	libs_check = ['/usr/local/lib', '/usr/lib']
+
+	# You can customize where you want to check
+	# e.g. here we search also in a folder defined by an environmental variable
+	if 'RESIBOTS_DIR' in os.environ:
+		includes_check = [os.environ['RESIBOTS_DIR'] + '/include/hexapod_dart'] + includes_check
+		libs_check = [os.environ['RESIBOTS_DIR'] + '/lib'] + libs_check
+
+	if conf.options.hexapod_dart:
+		includes_check = [conf.options.hexapod_dart + '/include/hexapod_dart']
+		libs_check = [conf.options.hexapod_dart + '/lib']
+
+	try:
+		conf.start_msg('Checking for hexapod_dart includes')
+		res = conf.find_file('hexapod.hpp', includes_check)
+		res = res and conf.find_file('hexapod_control.hpp', includes_check)
+		res = res and conf.find_file('hexapod_dart_simu.hpp', includes_check)
+		conf.end_msg('ok')
+		conf.start_msg('Checking for hexapod_dart libs')
+		res = res and conf.find_file('libhexapod_dart.a', libs_check)
+		conf.end_msg('ok')
+		conf.env.INCLUDES_HEXAPOD_DART = includes_check
+		conf.env.LIBPATH_HEXAPOD_DART = libs_check
+		conf.env.LIB_HEXAPOD_DART = ['hexapod_dart']
+		conf.start_msg('Checking for hexapod_dart graphics libs')
+		res = res and conf.find_file('libhexapod_dart_graphic.a', libs_check)
+		conf.end_msg('ok')
+		conf.env.LIB_HEXAPOD_DART.append('hexapod_dart_graphic')
+	except:
+		conf.end_msg('Not found', 'RED')
+		return
+	return 1
 
 ```
 
