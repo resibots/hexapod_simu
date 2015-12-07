@@ -14,14 +14,14 @@ namespace robot {
 
         dart::dynamics::SkeletonPtr skeleton();
 
-        void move_joints(const std::vector<double>& angles);
-
         bool is_broken(int leg);
-        void set_broken(const std::vector<int>& broken_legs);
         std::vector<int> broken_legs();
 
     protected:
-        bool _load_urdf(std::string urdf_file);
+        dart::dynamics::SkeletonPtr _load_urdf(std::string urdf_file);
+
+        void _set_broken(const std::vector<int>& broken_legs);
+        void _remove_legs();
 
         dart::dynamics::SkeletonPtr _skeleton;
         std::vector<int> _broken_legs;
