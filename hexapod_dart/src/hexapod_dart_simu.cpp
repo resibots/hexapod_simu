@@ -1,4 +1,5 @@
 #include <hexapod_dart_simu.hpp>
+#include <dart/collision/dart/DARTCollisionDetector.h>
 
 HexapodDARTSimu::HexapodDARTSimu(const std::vector<double>& ctrl, robot_t robot) : _controller(ctrl, robot),
                                                                                    _covered_distance(0.0),
@@ -6,6 +7,7 @@ HexapodDARTSimu::HexapodDARTSimu(const std::vector<double>& ctrl, robot_t robot)
                                                                                    _world(std::make_shared<dart::simulation::World>()),
                                                                                    _old_index(0)
 {
+    _world->getConstraintSolver()->setCollisionDetector(new dart::collision::DARTCollisionDetector());
     _robot = robot;
     _add_floor();
     _world->addSkeleton(_robot->skeleton());
@@ -39,7 +41,7 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
     {
         // check if world's time can be used
         _controller.update(chain ? (_world->getTime() - old_t) : _world->getTime());
-        // TO-DO: check if robot base collides with ground
+        // TO-DO: check if robot base collides with ground - DO WE NEED THIS?
         _world->step();
 
 #ifdef GRAPHIC
@@ -47,7 +49,66 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
 #endif
 
         if (index % 2 == 0) {
-            // TO-DO: get contacts for feet
+            for (unsigned i = 0; i < 6; ++i) {
+                std::string leg_name = "leg_"+std::to_string(i)+"_3";
+                dart::dynamics::BodyNodePtr tmp;
+                for(int j=0;j<rob->skeleton()->getNumBodyNodes();j++)
+                {
+                    auto bd = rob->skeleton()->getBodyNode(j);
+                    if(leg_name == bd->getName())
+                        tmp = bd;
+                }
+                switch (i) {
+                case 0:
+                    if (rob->is_broken(i)) {
+                        _behavior_contact_0.push_back(0);
+                    }
+                    else {
+                        _behavior_contact_0.push_back(tmp->isColliding());
+                    }
+                    break;
+                case 1:
+                    if (rob->is_broken(i)) {
+                        _behavior_contact_1.push_back(0);
+                    }
+                    else {
+                        _behavior_contact_1.push_back(tmp->isColliding());
+                    }
+                    break;
+                case 2:
+                    if (rob->is_broken(i)) {
+                        _behavior_contact_2.push_back(0);
+                    }
+                    else {
+                        _behavior_contact_2.push_back(tmp->isColliding());
+                    }
+                    break;
+                case 3:
+                    if (rob->is_broken(i)) {
+                        _behavior_contact_3.push_back(0);
+                    }
+                    else {
+                        _behavior_contact_3.push_back(tmp->isColliding());
+                    }
+                    break;
+                case 4:
+                    if (rob->is_broken(i)) {
+                        _behavior_contact_4.push_back(0);
+                    }
+                    else {
+                        _behavior_contact_4.push_back(tmp->isColliding());
+                    }
+                    break;
+                case 5:
+                    if (rob->is_broken(i)) {
+                        _behavior_contact_5.push_back(0);
+                    }
+                    else {
+                        _behavior_contact_5.push_back(tmp->isColliding());
+                    }
+                    break;
+                }
+            }
         }
 
         auto pos_and_rot = rob->skeleton()->getPositions();
@@ -56,6 +117,7 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
         Eigen::Vector3d rot = {pos_and_rot(0), pos_and_rot(1), pos_and_rot(2)};
 
         _behavior_traj.push_back(pos);
+        // TO-DO: Check for angle
         _rotation_traj.push_back(atan2(cos(rot[2]) * sin(rot[1]) * sin(rot[0]) + sin(rot[2]) * cos(rot[0]), cos(rot[2]) * cos(rot[1])) * 180 / M_PI);
 
         ++index;
@@ -70,8 +132,8 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
     Eigen::Vector3d pos = {pos_and_rot(3), pos_and_rot(4), pos_and_rot(5)};
     Eigen::Vector3d rot = {pos_and_rot(0), pos_and_rot(1), pos_and_rot(2)};
 
-    // TO-DO: compute covered_distance, arrival_angle
     _covered_distance = pos(0);
+    // TO-DO: check arrival_angle
     _arrival_angle = atan2(cos(rot[2]) * sin(rot[1]) * sin(rot[0]) + sin(rot[2]) * cos(rot[0]), cos(rot[2]) * cos(rot[1])) * 180 / M_PI;
 }
 
