@@ -265,8 +265,32 @@ const std::vector<double>& HexapodDARTSimu::get_contact(int i)
 
 bool HexapodDARTSimu::_stabilize_robot()
 {
-    // TO-DO: stabilize robot
-    return true;
+    robot_t rob = this->robot();
+
+    bool stabilized = false;
+    int stab = 0;
+
+    for (size_t s = 0; s < 1000 && !stabilized; ++s) {
+        auto pos_and_rot = rob->skeleton()->getPositions();
+        Eigen::Vector3d pos = {pos_and_rot(3), pos_and_rot(4), pos_and_rot(5)};
+
+        Eigen::Vector3d prev_pos = pos;
+
+        _controller.set_commands();
+        _world->step();
+
+        pos_and_rot = rob->skeleton()->getPositions();
+        pos = {pos_and_rot(3), pos_and_rot(4), pos_and_rot(5)};
+
+        if ((pos - prev_pos).norm() < 1e-4)
+            stab++;
+        else
+            stab = 0;
+        if (stab > 30)
+            stabilized = true;
+    }
+
+    return stabilized;
 }
 
 void HexapodDARTSimu::_add_floor()
