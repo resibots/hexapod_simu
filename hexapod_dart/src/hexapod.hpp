@@ -17,6 +17,10 @@ namespace robot {
         bool is_broken(int leg);
         std::vector<int> broken_legs();
 
+        Eigen::Vector3d pos();
+        Eigen::Vector3d rot();
+        Eigen::Vector6d pose();
+
     protected:
         dart::dynamics::SkeletonPtr _load_urdf(std::string urdf_file);
 

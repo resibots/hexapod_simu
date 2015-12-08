@@ -39,6 +39,10 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
     robot_t rob = this->robot();
     double old_t = _world->getTime();
     int index = _old_index;
+
+    Eigen::Vector3d init_pos = rob->pos();
+    Eigen::Vector3d init_rot = rob->rot();
+
 #ifdef GRAPHIC
     while ((_world->getTime() - old_t) < duration && !_osg_viewer.done())
 #else
@@ -115,30 +119,32 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
             }
         }
 
-        auto pos_and_rot = rob->skeleton()->getPositions();
-
-        Eigen::Vector3d pos = {pos_and_rot(3), pos_and_rot(4), pos_and_rot(5)};
-        Eigen::Vector3d rot = {pos_and_rot(0), pos_and_rot(1), pos_and_rot(2)};
+        Eigen::Vector3d pos = rob->pos();
+        Eigen::Vector3d rot = rob->rot();
 
         _behavior_traj.push_back(pos);
         // TO-DO: Check for angle
-        _rotation_traj.push_back(atan2(cos(rot[2]) * sin(rot[1]) * sin(rot[0]) + sin(rot[2]) * cos(rot[0]), cos(rot[2]) * cos(rot[1])) * 180 / M_PI);
+        _rotation_traj.push_back(atan2(cos(rot[2]) * sin(rot[1]) * sin(rot[0]) + sin(rot[2]) * cos(rot[0]), cos(rot[2]) * cos(rot[1])) * 180 / DART_PI);
 
         ++index;
     }
     _old_index = index;
 
-    if (!continuous)
-        _stabilize_robot();
+    if (!continuous) {
+        if (!_stabilize_robot()) {
+            _covered_distance = -10002.0;
+            _arrival_angle = 0.0;
+            return;
+        }
+    }
 
-    auto pos_and_rot = rob->skeleton()->getPositions();
+    Eigen::Vector3d stab_pos = rob->pos();
+    Eigen::Vector3d stab_rot = rob->rot();
 
-    Eigen::Vector3d pos = {pos_and_rot(3), pos_and_rot(4), pos_and_rot(5)};
-    Eigen::Vector3d rot = {pos_and_rot(0), pos_and_rot(1), pos_and_rot(2)};
-
-    _covered_distance = pos(0);
+    _covered_distance = std::round((stab_pos(0) - init_pos(0)) * 100 / 100.0);
     // TO-DO: check arrival_angle
-    _arrival_angle = atan2(cos(rot[2]) * sin(rot[1]) * sin(rot[0]) + sin(rot[2]) * cos(rot[0]), cos(rot[2]) * cos(rot[1])) * 180 / M_PI;
+    Eigen::Vector3d final_rot = stab_rot - init_rot;
+    _arrival_angle = atan2(cos(final_rot[2]) * sin(final_rot[1]) * sin(final_rot[0]) + sin(final_rot[2]) * cos(final_rot[0]), cos(final_rot[2]) * cos(final_rot[1])) * 180 / DART_PI;
 }
 
 HexapodDARTSimu::robot_t HexapodDARTSimu::robot()
@@ -278,10 +284,7 @@ bool HexapodDARTSimu::_stabilize_robot(bool update_ctrl)
         _world->setTimeStep(0.001);
 
     for (size_t s = 0; s < 1000 && !stabilized; ++s) {
-        auto pos_and_rot = rob->skeleton()->getPositions();
-        Eigen::Vector3d pos = {pos_and_rot(3), pos_and_rot(4), pos_and_rot(5)};
-
-        Eigen::Vector3d prev_pos = pos;
+        Eigen::Vector6d prev_pose = rob->pose();
 
         if (update_ctrl)
             _controller.update(_world->getTime());
@@ -289,10 +292,7 @@ bool HexapodDARTSimu::_stabilize_robot(bool update_ctrl)
             _controller.set_commands();
         _world->step();
 
-        pos_and_rot = rob->skeleton()->getPositions();
-        pos = {pos_and_rot(3), pos_and_rot(4), pos_and_rot(5)};
-
-        if ((pos - prev_pos).norm() < 1e-4)
+        if ((rob->pose() - prev_pose).norm() < 1e-4)
             stab++;
         else
             stab = 0;

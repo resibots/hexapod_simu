@@ -41,6 +41,26 @@ namespace robot {
         return _broken_legs;
     }
 
+    Eigen::Vector3d Hexapod::pos()
+    {
+        auto pos_and_rot = _skeleton->getPositions();
+        return {pos_and_rot(3), pos_and_rot(4), pos_and_rot(5)};
+    }
+
+    Eigen::Vector3d Hexapod::rot()
+    {
+        auto pos_and_rot = _skeleton->getPositions();
+        return {pos_and_rot(0), pos_and_rot(1), pos_and_rot(2)};
+    }
+
+    Eigen::Vector6d Hexapod::pose()
+    {
+        auto pos_and_rot = _skeleton->getPositions();
+        Eigen::Vector6d tmp;
+        tmp << pos_and_rot(3), pos_and_rot(4), pos_and_rot(5), pos_and_rot(0), pos_and_rot(1), pos_and_rot(2);
+        return tmp;
+    }
+
     dart::dynamics::SkeletonPtr Hexapod::_load_urdf(std::string urdf_file)
     {
         // Load file into string
