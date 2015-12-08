@@ -42,7 +42,7 @@ public:
     const std::vector<double>& get_contact(int i);
 
 protected:
-    bool _stabilize_robot();
+    bool _stabilize_robot(bool update_ctrl = false);
 
     void _add_floor();
 

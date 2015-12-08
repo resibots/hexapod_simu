@@ -61,6 +61,7 @@ namespace robot {
         }
 
         tmp_skel->setPosition(5, 0.1);
+        tmp_skel->setPosition(2, DART_PI);
         return tmp_skel;
     }
 

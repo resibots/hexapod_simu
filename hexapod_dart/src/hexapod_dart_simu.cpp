@@ -13,6 +13,12 @@ HexapodDARTSimu::HexapodDARTSimu(const std::vector<double>& ctrl, robot_t robot)
     _world->addSkeleton(_robot->skeleton());
     _world->setTimeStep(0.015);
 
+    std::vector<double> c_tmp(36, 0.0);
+    _controller.set_parameters(c_tmp);
+    _stabilize_robot(true);
+    _world->setTime(0.0);
+    _controller.set_parameters(ctrl);
+
 #ifdef GRAPHIC
     _osg_world_node = new osgDart::WorldNode(_world);
     _osg_world_node->simulate(true);
@@ -261,12 +267,15 @@ const std::vector<double>& HexapodDARTSimu::get_contact(int i)
     return _behavior_contact_0;
 }
 
-bool HexapodDARTSimu::_stabilize_robot()
+bool HexapodDARTSimu::_stabilize_robot(bool update_ctrl)
 {
     robot_t rob = this->robot();
 
     bool stabilized = false;
     int stab = 0;
+
+    if (update_ctrl)
+        _world->setTimeStep(0.001);
 
     for (size_t s = 0; s < 1000 && !stabilized; ++s) {
         auto pos_and_rot = rob->skeleton()->getPositions();
@@ -274,7 +283,10 @@ bool HexapodDARTSimu::_stabilize_robot()
 
         Eigen::Vector3d prev_pos = pos;
 
-        _controller.set_commands();
+        if (update_ctrl)
+            _controller.update(_world->getTime());
+        else
+            _controller.set_commands();
         _world->step();
 
         pos_and_rot = rob->skeleton()->getPositions();
@@ -287,6 +299,9 @@ bool HexapodDARTSimu::_stabilize_robot()
         if (stab > 30)
             stabilized = true;
     }
+
+    if (update_ctrl)
+        _world->setTimeStep(0.015);
 
     return stabilized;
 }
