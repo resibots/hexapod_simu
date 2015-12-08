@@ -39,7 +39,6 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
     while ((_world->getTime() - old_t) < duration)
 #endif
     {
-        // check if world's time can be used
         _controller.update(chain ? (_world->getTime() - old_t) : _world->getTime());
         // TO-DO: check if robot base collides with ground - DO WE NEED THIS?
         _world->step();
@@ -50,12 +49,11 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
 
         if (index % 2 == 0) {
             for (unsigned i = 0; i < 6; ++i) {
-                std::string leg_name = "leg_"+std::to_string(i)+"_3";
+                std::string leg_name = "leg_" + std::to_string(i) + "_3";
                 dart::dynamics::BodyNodePtr tmp;
-                for(int j=0;j<rob->skeleton()->getNumBodyNodes();j++)
-                {
+                for (int j = 0; j < rob->skeleton()->getNumBodyNodes(); j++) {
                     auto bd = rob->skeleton()->getBodyNode(j);
-                    if(leg_name == bd->getName())
+                    if (leg_name == bd->getName())
                         tmp = bd;
                 }
                 switch (i) {
