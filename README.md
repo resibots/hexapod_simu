@@ -13,9 +13,14 @@
 
 Here we keep the [robdyn] integration for our hexapods.
 
+### hexapod_dart
+
+Here we keep the [DART] integration for our hexapods.
+
 ## LICENSE
 
 [CeCILL]
 
 [CeCILL]: http://www.cecill.info/index.en.html
 [robdyn]: https://github.com/resibots/robdyn
+[DART]: http://dartsim.github.io/
