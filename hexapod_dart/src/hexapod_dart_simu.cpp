@@ -54,8 +54,10 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
 
         auto body = rob->skeleton()->getRootBodyNode();
         auto COM = rob->skeleton()->getCOM();
+        double x_angle = _min_dist_angle(std::round(rob->rot()(0) * DART_DEGREE * 100) / 100.0, std::round(init_rot(0) * DART_DEGREE * 100) / 100.0);
+        double y_angle = _min_dist_angle(std::round(rob->rot()(1) * DART_DEGREE * 100) / 100.0, std::round(init_rot(1) * DART_DEGREE * 100) / 100.0);
         // TO-DO: check also for leg collisions?
-        if (body->isColliding() || std::abs(COM(2)) > 0.3) {
+        if (body->isColliding() || std::abs(COM(2)) > 0.3 || std::abs(x_angle) > 90.0 || std::abs(y_angle) > 90.0) {
             _covered_distance = -10002.0;
             _arrival_angle = -10002.0;
             _direction = -10002.0;
