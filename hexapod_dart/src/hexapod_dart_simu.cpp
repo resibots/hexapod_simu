@@ -54,11 +54,13 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
 
         auto body = rob->skeleton()->getRootBodyNode();
         auto COM = rob->skeleton()->getCOM();
-        double x_angle = std::round(_min_dist_angle(rob->rot()(0), init_rot(0)) * 100) / 100.0;
-        double y_angle = std::round(_min_dist_angle(rob->rot()(1), init_rot(1)) * 100) / 100.0;
+        // roll-pitch-yaw
+        auto rpy = dart::math::matrixToEulerXYZ(dart::math::expMapRot(rob->rot()-init_rot));
+        double x_angle = rpy(0);
+        double y_angle = rpy(1);
         // TO-DO: check also for leg collisions?
-        // TO-DO: check angle representation
-        if (body->isColliding() || std::abs(COM(2)) > 0.3 || std::abs(x_angle) > DART_PI_HALF || std::abs(y_angle) > DART_PI_HALF) {
+        // TO-DO: combine roll and pitch for the check
+        if (body->isColliding() || std::abs(COM(2)) > 0.3 || std::abs(x_angle) >= DART_PI_HALF || std::abs(y_angle) >= DART_PI_HALF) {
             _covered_distance = -10002.0;
             _arrival_angle = -10002.0;
             _direction = -10002.0;
@@ -79,8 +81,8 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
         Eigen::Vector3d rot = rob->rot();
 
         _behavior_traj.push_back(pos);
-        // TO-DO: check angle representation
-        _rotation_traj.push_back(std::round(_min_dist_angle(rot(2), init_rot(2)) * 100) / 100.0);
+        // roll-pitch-yaw
+        _rotation_traj.push_back(std::round(dart::math::matrixToEulerXYZ(dart::math::expMapRot(rot-init_rot))(2) * 100) / 100.0);
 
         ++index;
     }
@@ -99,11 +101,12 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
     Eigen::Vector3d stab_rot = rob->rot();
 
     Eigen::Vector3d final_pos = stab_pos - init_pos;
+    Eigen::Vector3d final_rot = stab_rot - init_rot;
 
     _covered_distance = std::round(final_pos(0) * 100) / 100.0;
 
-    // TO-DO: check angle representation
-    _arrival_angle = std::round(_min_dist_angle(stab_rot(2), init_rot(2)) * 100) / 100.0;
+    // roll-pitch-yaw
+    _arrival_angle = std::round(dart::math::matrixToEulerXYZ(dart::math::expMapRot(final_rot))(2) * 100) / 100.0;
 
     _direction = std::round(std::atan2(final_pos(1), final_pos(0)) * 100) / 100.0;
 }
