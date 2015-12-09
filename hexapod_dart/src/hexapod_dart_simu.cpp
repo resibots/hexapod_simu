@@ -148,7 +148,7 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
 
     _arrival_angle = _min_dist_angle(std::round(stab_rot(2) * DART_DEGREE * 100) / 100.0, std::round(init_rot(2) * DART_DEGREE * 100) / 100.0);
 
-    _direction = atan2(final_pos(1), final_pos(0)) * DART_DEGREE;
+    _direction = std::atan2(final_pos(1), final_pos(0)) * DART_DEGREE;
 }
 
 HexapodDARTSimu::robot_t HexapodDARTSimu::robot()
@@ -168,39 +168,38 @@ std::vector<double> HexapodDARTSimu::get_duty_cycle()
     for (size_t i = 0; i < _behavior_contact_0.size(); i++)
         sum += _behavior_contact_0[i];
     sum /= _behavior_contact_0.size();
-    results.push_back(round(sum * 100) / 100.0);
+    results.push_back(std::round(sum * 100) / 100.0);
 
     sum = 0;
     for (size_t i = 0; i < _behavior_contact_1.size(); i++)
         sum += _behavior_contact_1[i];
     sum /= _behavior_contact_1.size();
-    results.push_back(round(sum * 100) / 100.0);
+    results.push_back(std::round(sum * 100) / 100.0);
 
     sum = 0;
     for (size_t i = 0; i < _behavior_contact_2.size(); i++)
         sum += _behavior_contact_2[i];
     sum /= _behavior_contact_2.size();
-    results.push_back(round(sum * 100) / 100.0);
+    results.push_back(std::round(sum * 100) / 100.0);
 
     sum = 0;
     for (size_t i = 0; i < _behavior_contact_3.size(); i++)
         sum += _behavior_contact_3[i];
     sum /= _behavior_contact_3.size();
-    results.push_back(round(sum * 100) / 100.0);
+    results.push_back(std::round(sum * 100) / 100.0);
 
     sum = 0;
     for (size_t i = 0; i < _behavior_contact_4.size(); i++)
         sum += _behavior_contact_4[i];
     sum /= _behavior_contact_4.size();
-    results.push_back(round(sum * 100) / 100.0);
+    results.push_back(std::round(sum * 100) / 100.0);
 
     sum = 0;
     for (size_t i = 0; i < _behavior_contact_5.size(); i++)
         sum += _behavior_contact_5[i];
     sum /= _behavior_contact_5.size();
-    results.push_back(round(sum * 100) / 100.0);
+    results.push_back(std::round(sum * 100) / 100.0);
 
-    // TODOOOO
     return results;
 }
 
@@ -346,7 +345,7 @@ double HexapodDARTSimu::_min_dist_angle(double a1, double a2)
     // res = (res + 180) % 360 - 180;
     // mod = (a, n) -> a - floor(a/n) * n
     res = res + 180.0;
-    res = res - std::floor(res/360.0)*360.0;
+    res = res - std::floor(res / 360.0) * 360.0;
     res = res - 180.0;
 
     // we want [-180,180] range
