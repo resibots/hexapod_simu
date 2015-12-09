@@ -51,7 +51,17 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
 #endif
     {
         _controller.update(chain ? (_world->getTime() - old_t) : _world->getTime());
-        // TO-DO: check if robot base collides with ground - DO WE NEED THIS?
+
+        auto body = rob->skeleton()->getRootBodyNode();
+        auto COM = rob->skeleton()->getCOM();
+        // TO-DO: check also for leg collisions?
+        if (body->isColliding() || std::abs(COM(2)) > 0.3) {
+            _covered_distance = -10002.0;
+            _arrival_angle = -10002.0;
+            _direction = -10002.0;
+            return;
+        }
+
         _world->step();
 
 #ifdef GRAPHIC
@@ -59,65 +69,7 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
 #endif
 
         if (index % 2 == 0) {
-            for (unsigned i = 0; i < 6; ++i) {
-                std::string leg_name = "leg_" + std::to_string(i) + "_3";
-                dart::dynamics::BodyNodePtr tmp;
-                for (int j = 0; j < rob->skeleton()->getNumBodyNodes(); j++) {
-                    auto bd = rob->skeleton()->getBodyNode(j);
-                    if (leg_name == bd->getName())
-                        tmp = bd;
-                }
-                switch (i) {
-                case 0:
-                    if (rob->is_broken(i)) {
-                        _behavior_contact_0.push_back(0);
-                    }
-                    else {
-                        _behavior_contact_0.push_back(tmp->isColliding());
-                    }
-                    break;
-                case 1:
-                    if (rob->is_broken(i)) {
-                        _behavior_contact_1.push_back(0);
-                    }
-                    else {
-                        _behavior_contact_1.push_back(tmp->isColliding());
-                    }
-                    break;
-                case 2:
-                    if (rob->is_broken(i)) {
-                        _behavior_contact_2.push_back(0);
-                    }
-                    else {
-                        _behavior_contact_2.push_back(tmp->isColliding());
-                    }
-                    break;
-                case 3:
-                    if (rob->is_broken(i)) {
-                        _behavior_contact_3.push_back(0);
-                    }
-                    else {
-                        _behavior_contact_3.push_back(tmp->isColliding());
-                    }
-                    break;
-                case 4:
-                    if (rob->is_broken(i)) {
-                        _behavior_contact_4.push_back(0);
-                    }
-                    else {
-                        _behavior_contact_4.push_back(tmp->isColliding());
-                    }
-                    break;
-                case 5:
-                    if (rob->is_broken(i)) {
-                        _behavior_contact_5.push_back(0);
-                    }
-                    else {
-                        _behavior_contact_5.push_back(tmp->isColliding());
-                    }
-                    break;
-                }
-            }
+            _check_duty_cycle();
         }
 
         Eigen::Vector3d pos = rob->pos();
@@ -133,8 +85,8 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
     if (!continuous) {
         if (!_stabilize_robot()) {
             _covered_distance = -10002.0;
-            _arrival_angle = 0.0;
-            _direction = 0.0;
+            _arrival_angle = -10002.0;
+            _direction = -10002.0;
             return;
         }
     }
@@ -161,7 +113,7 @@ double HexapodDARTSimu::covered_distance()
     return _covered_distance;
 }
 
-std::vector<double> HexapodDARTSimu::get_duty_cycle()
+std::vector<double> HexapodDARTSimu::duty_cycle()
 {
     std::vector<double> results;
     double sum = 0;
@@ -240,17 +192,17 @@ HexapodControl& HexapodDARTSimu::controller()
     return _controller;
 }
 
-const std::vector<Eigen::Vector3d>& HexapodDARTSimu::get_traj()
+const std::vector<Eigen::Vector3d>& HexapodDARTSimu::pos_traj()
 {
     return _behavior_traj;
 }
 
-const std::vector<double>& HexapodDARTSimu::get_rot_traj()
+const std::vector<double>& HexapodDARTSimu::rot_traj()
 {
     return _rotation_traj;
 }
 
-const std::vector<double>& HexapodDARTSimu::get_contact(int i)
+const std::vector<double>& HexapodDARTSimu::contact(int i)
 {
     switch (i) {
     case 0:
@@ -354,4 +306,69 @@ double HexapodDARTSimu::_min_dist_angle(double a1, double a2)
     while (res > 180)
         res -= 360;
     return res;
+}
+
+void HexapodDARTSimu::_check_duty_cycle()
+{
+    auto rob = this->robot();
+
+    for (unsigned i = 0; i < 6; ++i) {
+        std::string leg_name = "leg_" + std::to_string(i) + "_3";
+        dart::dynamics::BodyNodePtr tmp;
+        for (int j = 0; j < rob->skeleton()->getNumBodyNodes(); j++) {
+            auto bd = rob->skeleton()->getBodyNode(j);
+            if (leg_name == bd->getName())
+                tmp = bd;
+        }
+        switch (i) {
+        case 0:
+            if (rob->is_broken(i)) {
+                _behavior_contact_0.push_back(0);
+            }
+            else {
+                _behavior_contact_0.push_back(tmp->isColliding());
+            }
+            break;
+        case 1:
+            if (rob->is_broken(i)) {
+                _behavior_contact_1.push_back(0);
+            }
+            else {
+                _behavior_contact_1.push_back(tmp->isColliding());
+            }
+            break;
+        case 2:
+            if (rob->is_broken(i)) {
+                _behavior_contact_2.push_back(0);
+            }
+            else {
+                _behavior_contact_2.push_back(tmp->isColliding());
+            }
+            break;
+        case 3:
+            if (rob->is_broken(i)) {
+                _behavior_contact_3.push_back(0);
+            }
+            else {
+                _behavior_contact_3.push_back(tmp->isColliding());
+            }
+            break;
+        case 4:
+            if (rob->is_broken(i)) {
+                _behavior_contact_4.push_back(0);
+            }
+            else {
+                _behavior_contact_4.push_back(tmp->isColliding());
+            }
+            break;
+        case 5:
+            if (rob->is_broken(i)) {
+                _behavior_contact_5.push_back(0);
+            }
+            else {
+                _behavior_contact_5.push_back(tmp->isColliding());
+            }
+            break;
+        }
+    }
 }

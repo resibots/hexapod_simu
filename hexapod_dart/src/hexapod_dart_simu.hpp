@@ -24,7 +24,7 @@ public:
 
     double covered_distance();
 
-    std::vector<double> get_duty_cycle();
+    std::vector<double> duty_cycle();
 
     double energy();
     double direction();
@@ -36,10 +36,10 @@ public:
 
     HexapodControl& controller();
 
-    const std::vector<Eigen::Vector3d>& get_traj();
-    const std::vector<double>& get_rot_traj();
+    const std::vector<Eigen::Vector3d>& pos_traj();
+    const std::vector<double>& rot_traj();
 
-    const std::vector<double>& get_contact(int i);
+    const std::vector<double>& contact(int i);
 
 protected:
     bool _stabilize_robot(bool update_ctrl = false);
@@ -47,6 +47,8 @@ protected:
     void _add_floor();
 
     double _min_dist_angle(double a1, double a2);
+
+    void _check_duty_cycle();
 
     std::vector<Eigen::Vector3d> _behavior_traj;
     std::vector<double> _rotation_traj;
