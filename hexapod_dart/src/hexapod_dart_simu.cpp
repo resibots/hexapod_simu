@@ -316,11 +316,12 @@ void HexapodDARTSimu::_check_duty_cycle()
 
     for (unsigned i = 0; i < 6; ++i) {
         std::string leg_name = "leg_" + std::to_string(i) + "_3";
-        dart::dynamics::BodyNodePtr tmp;
+        dart::dynamics::BodyNodePtr body_to_check;
+        // TO-DO: Maybe there's a cleaner way to get the body
         for (int j = 0; j < rob->skeleton()->getNumBodyNodes(); j++) {
             auto bd = rob->skeleton()->getBodyNode(j);
             if (leg_name == bd->getName())
-                tmp = bd;
+                body_to_check = bd;
         }
         switch (i) {
         case 0:
@@ -328,7 +329,7 @@ void HexapodDARTSimu::_check_duty_cycle()
                 _behavior_contact_0.push_back(0);
             }
             else {
-                _behavior_contact_0.push_back(tmp->isColliding());
+                _behavior_contact_0.push_back(body_to_check->isColliding());
             }
             break;
         case 1:
@@ -336,7 +337,7 @@ void HexapodDARTSimu::_check_duty_cycle()
                 _behavior_contact_1.push_back(0);
             }
             else {
-                _behavior_contact_1.push_back(tmp->isColliding());
+                _behavior_contact_1.push_back(body_to_check->isColliding());
             }
             break;
         case 2:
@@ -344,7 +345,7 @@ void HexapodDARTSimu::_check_duty_cycle()
                 _behavior_contact_2.push_back(0);
             }
             else {
-                _behavior_contact_2.push_back(tmp->isColliding());
+                _behavior_contact_2.push_back(body_to_check->isColliding());
             }
             break;
         case 3:
@@ -352,7 +353,7 @@ void HexapodDARTSimu::_check_duty_cycle()
                 _behavior_contact_3.push_back(0);
             }
             else {
-                _behavior_contact_3.push_back(tmp->isColliding());
+                _behavior_contact_3.push_back(body_to_check->isColliding());
             }
             break;
         case 4:
@@ -360,7 +361,7 @@ void HexapodDARTSimu::_check_duty_cycle()
                 _behavior_contact_4.push_back(0);
             }
             else {
-                _behavior_contact_4.push_back(tmp->isColliding());
+                _behavior_contact_4.push_back(body_to_check->isColliding());
             }
             break;
         case 5:
@@ -368,7 +369,7 @@ void HexapodDARTSimu::_check_duty_cycle()
                 _behavior_contact_5.push_back(0);
             }
             else {
-                _behavior_contact_5.push_back(tmp->isColliding());
+                _behavior_contact_5.push_back(body_to_check->isColliding());
             }
             break;
         }
