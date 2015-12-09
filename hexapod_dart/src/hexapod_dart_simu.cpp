@@ -54,10 +54,11 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
 
         auto body = rob->skeleton()->getRootBodyNode();
         auto COM = rob->skeleton()->getCOM();
-        double x_angle = _min_dist_angle(std::round(rob->rot()(0) * DART_DEGREE * 100) / 100.0, std::round(init_rot(0) * DART_DEGREE * 100) / 100.0);
-        double y_angle = _min_dist_angle(std::round(rob->rot()(1) * DART_DEGREE * 100) / 100.0, std::round(init_rot(1) * DART_DEGREE * 100) / 100.0);
+        double x_angle = std::round(_min_dist_angle(rob->rot()(0), init_rot(0)) * 100) / 100.0;
+        double y_angle = std::round(_min_dist_angle(rob->rot()(1), init_rot(1)) * 100) / 100.0;
         // TO-DO: check also for leg collisions?
-        if (body->isColliding() || std::abs(COM(2)) > 0.3 || std::abs(x_angle) > 90.0 || std::abs(y_angle) > 90.0) {
+        // TO-DO: check angle representation
+        if (body->isColliding() || std::abs(COM(2)) > 0.3 || std::abs(x_angle) > DART_PI_HALF || std::abs(y_angle) > DART_PI_HALF) {
             _covered_distance = -10002.0;
             _arrival_angle = -10002.0;
             _direction = -10002.0;
@@ -78,7 +79,8 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
         Eigen::Vector3d rot = rob->rot();
 
         _behavior_traj.push_back(pos);
-        _rotation_traj.push_back(_min_dist_angle(std::round(rot(2) * DART_DEGREE * 100) / 100.0, std::round(init_rot(2) * DART_DEGREE * 100) / 100.0));
+        // TO-DO: check angle representation
+        _rotation_traj.push_back(std::round(_min_dist_angle(rot(2), init_rot(2)) * 100) / 100.0);
 
         ++index;
     }
@@ -100,9 +102,10 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
 
     _covered_distance = std::round(final_pos(0) * 100) / 100.0;
 
-    _arrival_angle = _min_dist_angle(std::round(stab_rot(2) * DART_DEGREE * 100) / 100.0, std::round(init_rot(2) * DART_DEGREE * 100) / 100.0);
+    // TO-DO: check angle representation
+    _arrival_angle = std::round(_min_dist_angle(stab_rot(2), init_rot(2)) * 100) / 100.0;
 
-    _direction = std::atan2(final_pos(1), final_pos(0)) * DART_DEGREE;
+    _direction = std::round(std::atan2(final_pos(1), final_pos(0)) * 100) / 100.0;
 }
 
 HexapodDARTSimu::robot_t HexapodDARTSimu::robot()
@@ -296,18 +299,7 @@ double HexapodDARTSimu::_min_dist_angle(double a1, double a2)
 {
     // compute minimum signed distance between 2 angles
     double res = a1 - a2;
-    // res = (res + 180) % 360 - 180;
-    // mod = (a, n) -> a - floor(a/n) * n
-    res = res + 180.0;
-    res = res - std::floor(res / 360.0) * 360.0;
-    res = res - 180.0;
-
-    // we want [-180,180] range
-    while (res < -180)
-        res += 360;
-    while (res > 180)
-        res -= 360;
-    return res;
+    return std::atan2(std::sin(res), std::cos(res));
 }
 
 void HexapodDARTSimu::_check_duty_cycle()
