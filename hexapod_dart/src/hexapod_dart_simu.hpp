@@ -27,7 +27,6 @@ public:
     std::vector<double> duty_cycle();
 
     double energy();
-    double direction();
     double arrival_angle();
     Eigen::Vector3d final_pos();
 
@@ -46,8 +45,6 @@ protected:
 
     void _add_floor();
 
-    double _min_dist_angle(double a1, double a2);
-
     void _check_duty_cycle();
 
     std::vector<Eigen::Vector3d> _behavior_traj;
@@ -61,7 +58,6 @@ protected:
     HexapodControl _controller;
     robot_t _robot;
     Eigen::Vector3d _final_pos;
-    double _direction;
     double _arrival_angle;
     double _covered_distance;
     double _energy;

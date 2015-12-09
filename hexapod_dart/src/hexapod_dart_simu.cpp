@@ -63,7 +63,6 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
         if (body->isColliding() || std::abs(COM(2)) > 0.3 || std::abs(x_angle) >= DART_PI_HALF || std::abs(y_angle) >= DART_PI_HALF) {
             _covered_distance = -10002.0;
             _arrival_angle = -10002.0;
-            _direction = -10002.0;
             return;
         }
 
@@ -92,7 +91,6 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
         if (!_stabilize_robot()) {
             _covered_distance = -10002.0;
             _arrival_angle = -10002.0;
-            _direction = -10002.0;
             return;
         }
     }
@@ -107,8 +105,6 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
 
     // roll-pitch-yaw
     _arrival_angle = std::round(dart::math::matrixToEulerXYZ(dart::math::expMapRot(final_rot))(2) * 100) / 100.0;
-
-    _direction = std::round(std::atan2(final_pos(1), final_pos(0)) * 100) / 100.0;
 }
 
 HexapodDARTSimu::robot_t HexapodDARTSimu::robot()
@@ -166,11 +162,6 @@ std::vector<double> HexapodDARTSimu::duty_cycle()
 double HexapodDARTSimu::energy()
 {
     return _energy;
-}
-
-double HexapodDARTSimu::direction()
-{
-    return _direction;
 }
 
 double HexapodDARTSimu::arrival_angle()
@@ -296,13 +287,6 @@ void HexapodDARTSimu::_add_floor()
     body->getParentJoint()->setTransformFromParentBodyNode(tf);
 
     _world->addSkeleton(floor);
-}
-
-double HexapodDARTSimu::_min_dist_angle(double a1, double a2)
-{
-    // compute minimum signed distance between 2 angles
-    double res = a1 - a2;
-    return std::atan2(std::sin(res), std::cos(res));
 }
 
 void HexapodDARTSimu::_check_duty_cycle()
