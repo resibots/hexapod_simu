@@ -46,6 +46,8 @@ protected:
 
     void _add_floor();
 
+    double _min_dist_angle(double a1, double a2);
+
     std::vector<Eigen::Vector3d> _behavior_traj;
     std::vector<double> _rotation_traj;
     std::vector<double> _behavior_contact_0;
