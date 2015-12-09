@@ -43,6 +43,7 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
     // TO-DO: maybe wee need better solution for this/reset them?
     static Eigen::Vector3d init_pos = rob->pos();
     static Eigen::Vector3d init_rot = rob->rot();
+    static Eigen::VectorXd torques(rob->skeleton()->getNumDofs());
 
 #ifdef GRAPHIC
     while ((_world->getTime() - old_t) < duration && !_osg_viewer.done())
@@ -52,10 +53,16 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
     {
         _controller.update(chain ? (_world->getTime() - old_t) : _world->getTime());
 
+        _world->step(false);
+
+        // integrate Torque (force) over time
+        auto state = rob->skeleton()->getForces().array().abs() * _world->getTimeStep();
+        torques = torques.array() + state.array();
+
         auto body = rob->skeleton()->getRootBodyNode();
         auto COM = rob->skeleton()->getCOM();
         // roll-pitch-yaw
-        auto rpy = dart::math::matrixToEulerXYZ(dart::math::expMapRot(rob->rot()-init_rot));
+        auto rpy = dart::math::matrixToEulerXYZ(dart::math::expMapRot(rob->rot() - init_rot));
         double x_angle = rpy(0);
         double y_angle = rpy(1);
         // TO-DO: check also for leg collisions?
@@ -63,10 +70,9 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
         if (body->isColliding() || std::abs(COM(2)) > 0.3 || std::abs(x_angle) >= DART_PI_HALF || std::abs(y_angle) >= DART_PI_HALF) {
             _covered_distance = -10002.0;
             _arrival_angle = -10002.0;
+            _energy = -10002.0;
             return;
         }
-
-        _world->step();
 
 #ifdef GRAPHIC
         _osg_viewer.frame();
@@ -81,16 +87,18 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
 
         _behavior_traj.push_back(pos);
         // roll-pitch-yaw
-        _rotation_traj.push_back(std::round(dart::math::matrixToEulerXYZ(dart::math::expMapRot(rot-init_rot))(2) * 100) / 100.0);
+        _rotation_traj.push_back(std::round(dart::math::matrixToEulerXYZ(dart::math::expMapRot(rot - init_rot))(2) * 100) / 100.0);
 
         ++index;
     }
+    _energy += torques.sum();
     _old_index = index;
 
     if (!continuous) {
         if (!_stabilize_robot()) {
             _covered_distance = -10002.0;
             _arrival_angle = -10002.0;
+            _energy = -10002.0;
             return;
         }
     }
