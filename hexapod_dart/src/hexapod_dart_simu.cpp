@@ -148,7 +148,6 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
 
     _arrival_angle = _min_dist_angle(std::round(stab_rot(2) * DART_DEGREE * 100) / 100.0, std::round(init_rot(2) * DART_DEGREE * 100) / 100.0);
 
-    // TO-DO: check direction
     _direction = atan2(final_pos(1), final_pos(0)) * DART_DEGREE;
 }
 
