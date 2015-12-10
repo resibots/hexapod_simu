@@ -82,12 +82,8 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
             _check_duty_cycle();
         }
 
-        Eigen::Vector3d pos = rob->pos();
-        Eigen::Vector3d rot = rob->rot();
-
-        _behavior_traj.push_back(pos);
-        // roll-pitch-yaw
-        _rotation_traj.push_back(std::round(dart::math::matrixToEulerXYZ(dart::math::expMapRot(rot - init_rot))(2) * 100) / 100.0);
+        _behavior_traj.push_back(rob->pos() - init_pos);
+        _rotation_traj.push_back(std::round(rpy(2) * 100) / 100.0);
 
         ++index;
     }
@@ -106,13 +102,13 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
     Eigen::Vector3d stab_pos = rob->pos();
     Eigen::Vector3d stab_rot = rob->rot();
 
-    Eigen::Vector3d final_pos = stab_pos - init_pos;
-    Eigen::Vector3d final_rot = stab_rot - init_rot;
+    _final_pos = stab_pos - init_pos;
+    _final_rot = stab_rot - init_rot;
 
-    _covered_distance = std::round(final_pos(0) * 100) / 100.0;
+    _covered_distance = std::round(_final_pos(0) * 100) / 100.0;
 
     // roll-pitch-yaw
-    _arrival_angle = std::round(dart::math::matrixToEulerXYZ(dart::math::expMapRot(final_rot))(2) * 100) / 100.0;
+    _arrival_angle = std::round(dart::math::matrixToEulerXYZ(dart::math::expMapRot(_final_rot))(2) * 100) / 100.0;
 }
 
 HexapodDARTSimu::robot_t HexapodDARTSimu::robot()
@@ -180,6 +176,11 @@ double HexapodDARTSimu::arrival_angle()
 Eigen::Vector3d HexapodDARTSimu::final_pos()
 {
     return _final_pos;
+}
+
+Eigen::Vector3d HexapodDARTSimu::final_rot()
+{
+    return _final_rot;
 }
 
 double HexapodDARTSimu::step()

@@ -29,6 +29,7 @@ public:
     double energy();
     double arrival_angle();
     Eigen::Vector3d final_pos();
+    Eigen::Vector3d final_rot();
 
     double step();
     void set_step(double step);
@@ -58,6 +59,7 @@ protected:
     HexapodControl _controller;
     robot_t _robot;
     Eigen::Vector3d _final_pos;
+    Eigen::Vector3d _final_rot;
     double _arrival_angle;
     double _covered_distance;
     double _energy;
