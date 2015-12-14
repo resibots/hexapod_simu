@@ -40,8 +40,10 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
     double old_t = _world->getTime();
     int index = _old_index;
 
-    Eigen::Vector3d init_pos = rob->pos();
-    Eigen::Vector3d init_rot = rob->rot();
+    // TO-DO: maybe wee need better solution for this/reset them?
+    static Eigen::Vector3d init_pos = rob->pos();
+    static Eigen::Vector3d init_rot = rob->rot();
+    static Eigen::VectorXd torques(rob->skeleton()->getNumDofs());
 
 #ifdef GRAPHIC
     while ((_world->getTime() - old_t) < duration && !_osg_viewer.done())
@@ -50,90 +52,50 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
 #endif
     {
         _controller.update(chain ? (_world->getTime() - old_t) : _world->getTime());
-        // TO-DO: check if robot base collides with ground - DO WE NEED THIS?
-        _world->step();
+
+        _world->step(false);
+
+        // integrate Torque (force) over time
+        auto state = rob->skeleton()->getForces().array().abs() * _world->getTimeStep();
+        torques = torques.array() + state.array();
+
+        auto body = rob->skeleton()->getRootBodyNode();
+        auto COM = rob->skeleton()->getCOM();
+        // roll-pitch-yaw
+        auto rot_mat = dart::math::expMapRot(rob->rot() - init_rot);
+        auto rpy = dart::math::matrixToEulerXYZ(rot_mat);
+        Eigen::Vector3d z_axis = {0.0, 0.0, 1.0};
+        Eigen::Vector3d robot_z_axis = rot_mat * z_axis;
+        double z_angle = std::atan2((z_axis.cross(robot_z_axis)).norm(), z_axis.dot(robot_z_axis));
+        // TO-DO: check also for leg collisions?
+        if (body->isColliding() || std::abs(COM(2)) > 0.3 || std::abs(z_angle) >= DART_PI_HALF) {
+            _covered_distance = -10002.0;
+            _arrival_angle = -10002.0;
+            _energy = -10002.0;
+            return;
+        }
 
 #ifdef GRAPHIC
         _osg_viewer.frame();
 #endif
 
         if (index % 2 == 0) {
-            for (unsigned i = 0; i < 6; ++i) {
-                std::string leg_name = "leg_" + std::to_string(i) + "_3";
-                dart::dynamics::BodyNodePtr tmp;
-                for (int j = 0; j < rob->skeleton()->getNumBodyNodes(); j++) {
-                    auto bd = rob->skeleton()->getBodyNode(j);
-                    if (leg_name == bd->getName())
-                        tmp = bd;
-                }
-                switch (i) {
-                case 0:
-                    if (rob->is_broken(i)) {
-                        _behavior_contact_0.push_back(0);
-                    }
-                    else {
-                        _behavior_contact_0.push_back(tmp->isColliding());
-                    }
-                    break;
-                case 1:
-                    if (rob->is_broken(i)) {
-                        _behavior_contact_1.push_back(0);
-                    }
-                    else {
-                        _behavior_contact_1.push_back(tmp->isColliding());
-                    }
-                    break;
-                case 2:
-                    if (rob->is_broken(i)) {
-                        _behavior_contact_2.push_back(0);
-                    }
-                    else {
-                        _behavior_contact_2.push_back(tmp->isColliding());
-                    }
-                    break;
-                case 3:
-                    if (rob->is_broken(i)) {
-                        _behavior_contact_3.push_back(0);
-                    }
-                    else {
-                        _behavior_contact_3.push_back(tmp->isColliding());
-                    }
-                    break;
-                case 4:
-                    if (rob->is_broken(i)) {
-                        _behavior_contact_4.push_back(0);
-                    }
-                    else {
-                        _behavior_contact_4.push_back(tmp->isColliding());
-                    }
-                    break;
-                case 5:
-                    if (rob->is_broken(i)) {
-                        _behavior_contact_5.push_back(0);
-                    }
-                    else {
-                        _behavior_contact_5.push_back(tmp->isColliding());
-                    }
-                    break;
-                }
-            }
+            _check_duty_cycle();
         }
 
-        Eigen::Vector3d pos = rob->pos();
-        Eigen::Vector3d rot = rob->rot();
-
-        _behavior_traj.push_back(pos);
-        // TO-DO: Check for angle
-        _rotation_traj.push_back(atan2(cos(rot[2]) * sin(rot[1]) * sin(rot[0]) + sin(rot[2]) * cos(rot[0]), cos(rot[2]) * cos(rot[1])) * 180 / DART_PI);
+        _behavior_traj.push_back(rob->pos() - init_pos);
+        _rotation_traj.push_back(std::round(rpy(2) * 100) / 100.0);
 
         ++index;
     }
+    _energy += torques.sum();
     _old_index = index;
 
     if (!continuous) {
         if (!_stabilize_robot()) {
             _covered_distance = -10002.0;
-            _arrival_angle = 0.0;
+            _arrival_angle = -10002.0;
+            _energy = -10002.0;
             return;
         }
     }
@@ -141,10 +103,13 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
     Eigen::Vector3d stab_pos = rob->pos();
     Eigen::Vector3d stab_rot = rob->rot();
 
-    _covered_distance = std::round((stab_pos(0) - init_pos(0)) * 100 / 100.0);
-    // TO-DO: check arrival_angle
-    Eigen::Vector3d final_rot = stab_rot - init_rot;
-    _arrival_angle = atan2(cos(final_rot[2]) * sin(final_rot[1]) * sin(final_rot[0]) + sin(final_rot[2]) * cos(final_rot[0]), cos(final_rot[2]) * cos(final_rot[1])) * 180 / DART_PI;
+    _final_pos = stab_pos - init_pos;
+    _final_rot = stab_rot - init_rot;
+
+    _covered_distance = std::round(_final_pos(0) * 100) / 100.0;
+
+    // roll-pitch-yaw
+    _arrival_angle = std::round(dart::math::matrixToEulerXYZ(dart::math::expMapRot(_final_rot))(2) * 100) / 100.0;
 }
 
 HexapodDARTSimu::robot_t HexapodDARTSimu::robot()
@@ -157,57 +122,51 @@ double HexapodDARTSimu::covered_distance()
     return _covered_distance;
 }
 
-std::vector<double> HexapodDARTSimu::get_duty_cycle()
+std::vector<double> HexapodDARTSimu::duty_cycle()
 {
     std::vector<double> results;
     double sum = 0;
     for (size_t i = 0; i < _behavior_contact_0.size(); i++)
         sum += _behavior_contact_0[i];
     sum /= _behavior_contact_0.size();
-    results.push_back(round(sum * 100) / 100.0);
+    results.push_back(std::round(sum * 100) / 100.0);
 
     sum = 0;
     for (size_t i = 0; i < _behavior_contact_1.size(); i++)
         sum += _behavior_contact_1[i];
     sum /= _behavior_contact_1.size();
-    results.push_back(round(sum * 100) / 100.0);
+    results.push_back(std::round(sum * 100) / 100.0);
 
     sum = 0;
     for (size_t i = 0; i < _behavior_contact_2.size(); i++)
         sum += _behavior_contact_2[i];
     sum /= _behavior_contact_2.size();
-    results.push_back(round(sum * 100) / 100.0);
+    results.push_back(std::round(sum * 100) / 100.0);
 
     sum = 0;
     for (size_t i = 0; i < _behavior_contact_3.size(); i++)
         sum += _behavior_contact_3[i];
     sum /= _behavior_contact_3.size();
-    results.push_back(round(sum * 100) / 100.0);
+    results.push_back(std::round(sum * 100) / 100.0);
 
     sum = 0;
     for (size_t i = 0; i < _behavior_contact_4.size(); i++)
         sum += _behavior_contact_4[i];
     sum /= _behavior_contact_4.size();
-    results.push_back(round(sum * 100) / 100.0);
+    results.push_back(std::round(sum * 100) / 100.0);
 
     sum = 0;
     for (size_t i = 0; i < _behavior_contact_5.size(); i++)
         sum += _behavior_contact_5[i];
     sum /= _behavior_contact_5.size();
-    results.push_back(round(sum * 100) / 100.0);
+    results.push_back(std::round(sum * 100) / 100.0);
 
-    // TODOOOO
     return results;
 }
 
 double HexapodDARTSimu::energy()
 {
     return _energy;
-}
-
-double HexapodDARTSimu::direction()
-{
-    return _direction;
 }
 
 double HexapodDARTSimu::arrival_angle()
@@ -218,6 +177,11 @@ double HexapodDARTSimu::arrival_angle()
 Eigen::Vector3d HexapodDARTSimu::final_pos()
 {
     return _final_pos;
+}
+
+Eigen::Vector3d HexapodDARTSimu::final_rot()
+{
+    return _final_rot;
 }
 
 double HexapodDARTSimu::step()
@@ -237,17 +201,17 @@ HexapodControl& HexapodDARTSimu::controller()
     return _controller;
 }
 
-const std::vector<Eigen::Vector3d>& HexapodDARTSimu::get_traj()
+const std::vector<Eigen::Vector3d>& HexapodDARTSimu::pos_traj()
 {
     return _behavior_traj;
 }
 
-const std::vector<double>& HexapodDARTSimu::get_rot_traj()
+const std::vector<double>& HexapodDARTSimu::rot_traj()
 {
     return _rotation_traj;
 }
 
-const std::vector<double>& HexapodDARTSimu::get_contact(int i)
+const std::vector<double>& HexapodDARTSimu::contact(int i)
 {
     switch (i) {
     case 0:
@@ -333,4 +297,70 @@ void HexapodDARTSimu::_add_floor()
     body->getParentJoint()->setTransformFromParentBodyNode(tf);
 
     _world->addSkeleton(floor);
+}
+
+void HexapodDARTSimu::_check_duty_cycle()
+{
+    auto rob = this->robot();
+
+    for (unsigned i = 0; i < 6; ++i) {
+        std::string leg_name = "leg_" + std::to_string(i) + "_3";
+        dart::dynamics::BodyNodePtr body_to_check;
+        // TO-DO: Maybe there's a cleaner way to get the body
+        for (int j = 0; j < rob->skeleton()->getNumBodyNodes(); j++) {
+            auto bd = rob->skeleton()->getBodyNode(j);
+            if (leg_name == bd->getName())
+                body_to_check = bd;
+        }
+        switch (i) {
+        case 0:
+            if (rob->is_broken(i)) {
+                _behavior_contact_0.push_back(0);
+            }
+            else {
+                _behavior_contact_0.push_back(body_to_check->isColliding());
+            }
+            break;
+        case 1:
+            if (rob->is_broken(i)) {
+                _behavior_contact_1.push_back(0);
+            }
+            else {
+                _behavior_contact_1.push_back(body_to_check->isColliding());
+            }
+            break;
+        case 2:
+            if (rob->is_broken(i)) {
+                _behavior_contact_2.push_back(0);
+            }
+            else {
+                _behavior_contact_2.push_back(body_to_check->isColliding());
+            }
+            break;
+        case 3:
+            if (rob->is_broken(i)) {
+                _behavior_contact_3.push_back(0);
+            }
+            else {
+                _behavior_contact_3.push_back(body_to_check->isColliding());
+            }
+            break;
+        case 4:
+            if (rob->is_broken(i)) {
+                _behavior_contact_4.push_back(0);
+            }
+            else {
+                _behavior_contact_4.push_back(body_to_check->isColliding());
+            }
+            break;
+        case 5:
+            if (rob->is_broken(i)) {
+                _behavior_contact_5.push_back(0);
+            }
+            else {
+                _behavior_contact_5.push_back(body_to_check->isColliding());
+            }
+            break;
+        }
+    }
 }

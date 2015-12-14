@@ -24,27 +24,29 @@ public:
 
     double covered_distance();
 
-    std::vector<double> get_duty_cycle();
+    std::vector<double> duty_cycle();
 
     double energy();
-    double direction();
     double arrival_angle();
     Eigen::Vector3d final_pos();
+    Eigen::Vector3d final_rot();
 
     double step();
     void set_step(double step);
 
     HexapodControl& controller();
 
-    const std::vector<Eigen::Vector3d>& get_traj();
-    const std::vector<double>& get_rot_traj();
+    const std::vector<Eigen::Vector3d>& pos_traj();
+    const std::vector<double>& rot_traj();
 
-    const std::vector<double>& get_contact(int i);
+    const std::vector<double>& contact(int i);
 
 protected:
     bool _stabilize_robot(bool update_ctrl = false);
 
     void _add_floor();
+
+    void _check_duty_cycle();
 
     std::vector<Eigen::Vector3d> _behavior_traj;
     std::vector<double> _rotation_traj;
@@ -57,7 +59,7 @@ protected:
     HexapodControl _controller;
     robot_t _robot;
     Eigen::Vector3d _final_pos;
-    double _direction;
+    Eigen::Vector3d _final_rot;
     double _arrival_angle;
     double _covered_distance;
     double _energy;
