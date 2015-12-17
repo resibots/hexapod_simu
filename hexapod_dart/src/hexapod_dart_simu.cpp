@@ -31,8 +31,6 @@ HexapodDARTSimu::HexapodDARTSimu(const std::vector<double>& ctrl, robot_t robot)
 
 HexapodDARTSimu::~HexapodDARTSimu()
 {
-    // we have to clean in the good order
-    _robot.reset();
     _world.reset();
 }
 
