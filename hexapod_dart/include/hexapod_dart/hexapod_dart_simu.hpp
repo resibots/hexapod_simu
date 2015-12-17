@@ -10,65 +10,68 @@
 #include <osgDart/osgDart.h>
 #endif
 
-class HexapodDARTSimu {
-public:
-    using robot_t = std::shared_ptr<robot::Hexapod>;
+namespace hexapod_dart {
 
-    HexapodDARTSimu(const std::vector<double>& ctrl, robot_t robot);
+    class HexapodDARTSimu {
+    public:
+        using robot_t = std::shared_ptr<Hexapod>;
 
-    ~HexapodDARTSimu();
+        HexapodDARTSimu(const std::vector<double>& ctrl, robot_t robot);
 
-    void run(double duration = 5.0, bool continuous = false, bool chain = false);
+        ~HexapodDARTSimu();
 
-    robot_t robot();
+        void run(double duration = 5.0, bool continuous = false, bool chain = false);
 
-    double covered_distance();
+        robot_t robot();
 
-    std::vector<double> duty_cycle();
+        double covered_distance();
 
-    double energy();
-    double arrival_angle();
-    Eigen::Vector3d final_pos();
-    Eigen::Vector3d final_rot();
+        std::vector<double> duty_cycle();
 
-    double step();
-    void set_step(double step);
+        double energy();
+        double arrival_angle();
+        Eigen::Vector3d final_pos();
+        Eigen::Vector3d final_rot();
 
-    HexapodControl& controller();
+        double step();
+        void set_step(double step);
 
-    const std::vector<Eigen::Vector3d>& pos_traj();
-    const std::vector<double>& rot_traj();
+        HexapodControl& controller();
 
-    const std::vector<double>& contact(int i);
+        const std::vector<Eigen::Vector3d>& pos_traj();
+        const std::vector<double>& rot_traj();
 
-protected:
-    bool _stabilize_robot(bool update_ctrl = false);
+        const std::vector<double>& contact(int i);
 
-    void _add_floor();
+    protected:
+        bool _stabilize_robot(bool update_ctrl = false);
 
-    void _check_duty_cycle();
+        void _add_floor();
 
-    std::vector<Eigen::Vector3d> _behavior_traj;
-    std::vector<double> _rotation_traj;
-    std::vector<double> _behavior_contact_0;
-    std::vector<double> _behavior_contact_1;
-    std::vector<double> _behavior_contact_2;
-    std::vector<double> _behavior_contact_3;
-    std::vector<double> _behavior_contact_4;
-    std::vector<double> _behavior_contact_5;
-    HexapodControl _controller;
-    robot_t _robot;
-    Eigen::Vector3d _final_pos;
-    Eigen::Vector3d _final_rot;
-    double _arrival_angle;
-    double _covered_distance;
-    double _energy;
-    dart::simulation::WorldPtr _world;
-    int _old_index;
+        void _check_duty_cycle();
+
+        std::vector<Eigen::Vector3d> _behavior_traj;
+        std::vector<double> _rotation_traj;
+        std::vector<double> _behavior_contact_0;
+        std::vector<double> _behavior_contact_1;
+        std::vector<double> _behavior_contact_2;
+        std::vector<double> _behavior_contact_3;
+        std::vector<double> _behavior_contact_4;
+        std::vector<double> _behavior_contact_5;
+        HexapodControl _controller;
+        robot_t _robot;
+        Eigen::Vector3d _final_pos;
+        Eigen::Vector3d _final_rot;
+        double _arrival_angle;
+        double _covered_distance;
+        double _energy;
+        dart::simulation::WorldPtr _world;
+        int _old_index;
 #ifdef GRAPHIC
-    osg::ref_ptr<osgDart::WorldNode> _osg_world_node;
-    osgDart::Viewer _osg_viewer;
+        osg::ref_ptr<osgDart::WorldNode> _osg_world_node;
+        osgDart::Viewer _osg_viewer;
 #endif
-};
+    };
+}
 
 #endif

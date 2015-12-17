@@ -4,7 +4,7 @@
 #include <dart/dart.h>
 #include <Eigen/Core>
 
-namespace robot {
+namespace hexapod_dart {
     class Hexapod {
     public:
         Hexapod(std::string urdf_file, std::vector<int> broken_legs);

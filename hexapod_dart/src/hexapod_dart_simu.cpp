@@ -1,6 +1,8 @@
 #include <hexapod_dart/hexapod_dart_simu.hpp>
 #include <dart/collision/dart/DARTCollisionDetector.h>
 
+using namespace hexapod_dart;
+
 HexapodDARTSimu::HexapodDARTSimu(const std::vector<double>& ctrl, robot_t robot) : _controller(ctrl, robot),
                                                                                    _covered_distance(0.0),
                                                                                    _energy(0.0),

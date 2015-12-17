@@ -4,31 +4,31 @@
 #include <hexapod_dart/hexapod.hpp>
 #include <hexapod_controller/hexapod_controller_simple.hpp>
 
-class HexapodControl {
-public:
-    using robot_t = std::shared_ptr<robot::Hexapod>;
+namespace hexapod_dart {
 
-    HexapodControl() {}
-    HexapodControl(const std::vector<double>& ctrl, robot_t robot);
+    class HexapodControl {
+    public:
+        using robot_t = std::shared_ptr<Hexapod>;
 
-    void set_parameters(const std::vector<double>& ctrl);
-    std::vector<double> parameters();
+        HexapodControl() {}
+        HexapodControl(const std::vector<double>& ctrl, robot_t robot);
 
-    robot_t robot();
+        void set_parameters(const std::vector<double>& ctrl);
+        std::vector<double> parameters();
 
-    void update(double t);
+        robot_t robot();
 
-    void set_commands();
+        void update(double t);
 
-protected:
-    hexapod_controller::HexapodControllerSimple _controller;
-    robot_t _robot;
+        void set_commands();
 
-    Eigen::VectorXd _target_positions;
-    // Eigen::MatrixXd _kp;
-    // Eigen::MatrixXd _kd;
-    Eigen::VectorXd _p;
-    // Eigen::VectorXd _forces;
-};
+    protected:
+        hexapod_controller::HexapodControllerSimple _controller;
+        robot_t _robot;
+
+        Eigen::VectorXd _target_positions;
+        Eigen::VectorXd _p;
+    };
+}
 
 #endif
