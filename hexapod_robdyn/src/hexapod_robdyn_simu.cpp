@@ -3,7 +3,7 @@
 #endif
 
 #include <numeric>
-#include <hexapod_robdyn_simu.hpp>
+#include <hexapod_robdyn/hexapod_robdyn_simu.hpp>
 
 using namespace hexapod_robdyn;
 

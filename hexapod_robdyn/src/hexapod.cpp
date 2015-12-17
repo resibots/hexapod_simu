@@ -1,4 +1,4 @@
-#include <hexapod.hpp>
+#include <hexapod_robdyn/hexapod.hpp>
 #include <ode/box.hh>
 #include <ode/capped_cyl.hh>
 #include <ode/sphere.hh>

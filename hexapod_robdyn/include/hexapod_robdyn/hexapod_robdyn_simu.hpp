@@ -8,7 +8,7 @@
 #include <renderer/osg_visitor.hh>
 #endif
 
-#include <hexapod.hpp>
+#include <hexapod_robdyn/hexapod.hpp>
 #include <hexapod_controller/hexapod_controller_simple.hpp>
 #define MAX_ANG_VEL 11.9380521
 #define DYN2RAD 0.00511326929
