@@ -3,8 +3,8 @@
 
 #include <dart/dart.h>
 #include <Eigen/Core>
-#include <hexapod.hpp>
-#include <hexapod_control.hpp>
+#include <hexapod_dart/hexapod.hpp>
+#include <hexapod_dart/hexapod_control.hpp>
 
 #ifdef GRAPHIC
 #include <osgDart/osgDart.h>

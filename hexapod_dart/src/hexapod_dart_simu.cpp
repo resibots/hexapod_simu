@@ -1,4 +1,4 @@
-#include <hexapod_dart_simu.hpp>
+#include <hexapod_dart/hexapod_dart_simu.hpp>
 #include <dart/collision/dart/DARTCollisionDetector.h>
 
 HexapodDARTSimu::HexapodDARTSimu(const std::vector<double>& ctrl, robot_t robot) : _controller(ctrl, robot),

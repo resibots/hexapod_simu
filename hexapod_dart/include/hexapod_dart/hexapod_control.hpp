@@ -1,7 +1,7 @@
 #ifndef HEXAPOD_DART_HEXAPOD_CONTROL
 #define HEXAPOD_DART_HEXAPOD_CONTROL
 
-#include <hexapod.hpp>
+#include <hexapod_dart/hexapod.hpp>
 #include <hexapod_controller/hexapod_controller_simple.hpp>
 
 class HexapodControl {

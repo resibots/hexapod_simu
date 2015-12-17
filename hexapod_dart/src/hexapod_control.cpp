@@ -1,4 +1,4 @@
-#include <hexapod_control.hpp>
+#include <hexapod_dart/hexapod_control.hpp>
 
 HexapodControl::HexapodControl(const std::vector<double>& ctrl, robot_t robot) : _controller(ctrl, robot->broken_legs()), _robot(robot)
 {
