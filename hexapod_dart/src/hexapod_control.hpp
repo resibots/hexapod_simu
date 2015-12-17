@@ -2,7 +2,7 @@
 #define HEXAPOD_DART_HEXAPOD_CONTROL
 
 #include <hexapod.hpp>
-#include <hexapod_controller_simple.hpp>
+#include <hexapod_controller/hexapod_controller_simple.hpp>
 
 class HexapodControl {
 public:
@@ -21,7 +21,7 @@ public:
     void set_commands();
 
 protected:
-    HexapodControllerSimple _controller;
+    hexapod_controller::HexapodControllerSimple _controller;
     robot_t _robot;
 
     Eigen::VectorXd _target_positions;
