@@ -85,7 +85,7 @@ def check_hexapod_robdyn(conf):
 		conf.start_msg('Checking for hexapod_robdyn graphics libs')
 		res = res and conf.find_file('libhexapod_robdyn_graphic.a', libs_check)
 		conf.end_msg('ok')
-		conf.env.LIB_HEXAPOD_CONTROLLER.append('hexapod_robdyn_graphic')
+		conf.env.LIB_HEXAPOD_ROBDYN.append('hexapod_robdyn_graphic')
 	except:
 		conf.end_msg('Not found', 'RED')
 		return
