@@ -7,8 +7,8 @@
 #include <robot/robot.hh>
 #include <ode/environment_hexa.hh>
 
-namespace robot {
-    class Hexapod : public Robot {
+namespace hexapod_robdyn {
+    class Hexapod : public robot::Robot {
     public:
         Hexapod(ode::Environment_hexa& env, const Eigen::Vector3d& pos, std::vector<int> broken_legs);
 
