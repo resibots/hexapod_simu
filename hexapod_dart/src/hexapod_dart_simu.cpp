@@ -1,5 +1,7 @@
-#include <hexapod_dart_simu.hpp>
+#include <hexapod_dart/hexapod_dart_simu.hpp>
 #include <dart/collision/dart/DARTCollisionDetector.h>
+
+using namespace hexapod_dart;
 
 HexapodDARTSimu::HexapodDARTSimu(const std::vector<double>& ctrl, robot_t robot) : _controller(ctrl, robot),
                                                                                    _covered_distance(0.0),
@@ -303,11 +305,11 @@ void HexapodDARTSimu::_check_duty_cycle()
 {
     auto rob = this->robot();
 
-    for (unsigned i = 0; i < 6; ++i) {
+    for (size_t i = 0; i < 6; ++i) {
         std::string leg_name = "leg_" + std::to_string(i) + "_3";
         dart::dynamics::BodyNodePtr body_to_check;
         // TO-DO: Maybe there's a cleaner way to get the body
-        for (int j = 0; j < rob->skeleton()->getNumBodyNodes(); j++) {
+        for (size_t j = 0; j < rob->skeleton()->getNumBodyNodes(); j++) {
             auto bd = rob->skeleton()->getBodyNode(j);
             if (leg_name == bd->getName())
                 body_to_check = bd;

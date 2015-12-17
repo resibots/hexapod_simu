@@ -33,6 +33,15 @@
 
 ### Using the WAF build system
 
+You need to add the following as external libraries:
+
+- DART (use `waf_tools/dart.py`)
+- BOOST (use `waf_tools/boost.py`)
+    - DART requires only `system` and `regex` boost libraries
+    - Minimum version `1.46`
+- eigen3 (use `waf_tools/eigen.py`)
+- hexapod_controller (use `waf_tools/hexapod_controller.py`)
+
 Add hexapod_dart as an external library using the following script:
 
 ```python
@@ -45,59 +54,91 @@ Quick n dirty hexapod_dart detection
 """
 
 import os
+import boost
+import eigen
+import hexapod_controller
+import dart
 from waflib.Configure import conf
 
 
 def options(opt):
-	opt.add_option('--hexapod_dart', type='string', help='path to hexapod_dart', dest='hexapod_dart')
+  opt.load('boost')
+  opt.load('eigen')
+  opt.load('hexapod_controller')
+  opt.load('dart')
+  opt.add_option('--hexapod_dart', type='string', help='path to hexapod_dart', dest='hexapod_dart')
 
 @conf
 def check_hexapod_dart(conf):
-	includes_check = ['/usr/local/include/hexapod_dart', '/usr/include/hexapod_dart']
-	libs_check = ['/usr/local/lib', '/usr/lib']
+    conf.load('boost')
+    conf.load('eigen')
+    conf.load('hexapod_controller')
+    conf.load('dart')
 
-	# You can customize where you want to check
-	# e.g. here we search also in a folder defined by an environmental variable
-	if 'RESIBOTS_DIR' in os.environ:
-		includes_check = [os.environ['RESIBOTS_DIR'] + '/include/hexapod_dart'] + includes_check
-		libs_check = [os.environ['RESIBOTS_DIR'] + '/lib'] + libs_check
+    # In boost you can use the uselib_store option to change the variable the libs will be loaded
+    boost_var = 'BOOST'
+    conf.check_boost(lib='regex system', min_version='1.46', uselib_store=boost_var)
+    conf.check_eigen()
+    conf.check_hexapod_controller()
+    conf.check_dart()
 
-	if conf.options.hexapod_dart:
-		includes_check = [conf.options.hexapod_dart + '/include/hexapod_dart']
-		libs_check = [conf.options.hexapod_dart + '/lib']
+    includes_check = ['/usr/local/include', '/usr/include']
+    libs_check = ['/usr/local/lib', '/usr/lib']
 
-	try:
-		conf.start_msg('Checking for hexapod_dart includes')
-		res = conf.find_file('hexapod.hpp', includes_check)
-		res = res and conf.find_file('hexapod_control.hpp', includes_check)
-		res = res and conf.find_file('hexapod_dart_simu.hpp', includes_check)
-		conf.end_msg('ok')
-		conf.start_msg('Checking for hexapod_dart libs')
-		res = res and conf.find_file('libhexapod_dart.a', libs_check)
-		conf.end_msg('ok')
-		conf.env.INCLUDES_HEXAPOD_DART = includes_check
-		conf.env.LIBPATH_HEXAPOD_DART = libs_check
-		conf.env.LIB_HEXAPOD_DART = ['hexapod_dart']
-		conf.start_msg('Checking for hexapod_dart graphics libs')
-		res = res and conf.find_file('libhexapod_dart_graphic.a', libs_check)
-		conf.end_msg('ok')
-		conf.env.LIB_HEXAPOD_DART.append('hexapod_dart_graphic')
-	except:
-		conf.end_msg('Not found', 'RED')
-		return
-	return 1
+    # You can customize where you want to check
+    # e.g. here we search also in a folder defined by an environmental variable
+    if 'RESIBOTS_DIR' in os.environ:
+      includes_check = [os.environ['RESIBOTS_DIR'] + '/include'] + includes_check
+      libs_check = [os.environ['RESIBOTS_DIR'] + '/lib'] + libs_check
 
+    if conf.options.hexapod_dart:
+      includes_check = [conf.options.hexapod_dart + '/include']
+      libs_check = [conf.options.hexapod_dart + '/lib']
+
+    try:
+      conf.start_msg('Checking for hexapod_dart includes')
+      res = conf.find_file('hexapod_dart/hexapod.hpp', includes_check)
+      res = res and conf.find_file('hexapod_dart/hexapod_control.hpp', includes_check)
+      res = res and conf.find_file('hexapod_dart/hexapod_dart_simu.hpp', includes_check)
+      conf.end_msg('ok')
+      conf.start_msg('Checking for hexapod_dart libs')
+      res = res and conf.find_file('libhexapod_dart.a', libs_check)
+      conf.end_msg('ok')
+      conf.env.INCLUDES_HEXAPOD_DART = includes_check
+      conf.env.STLIBPATH_HEXAPOD_DART = libs_check
+      conf.env.STLIB_HEXAPOD_DART = ['hexapod_dart']
+      conf.start_msg('Checking for hexapod_dart graphics libs')
+      res = res and conf.find_file('libhexapod_dart_graphic.a', libs_check)
+      conf.end_msg('ok')
+      conf.env.INCLUDES_HEXAPOD_DART_GRAPHIC = conf.env.INCLUDES_HEXAPOD_DART
+      conf.env.STLIBPATH_HEXAPOD_DART_GRAPHIC = conf.env.STLIBPATH_HEXAPOD_DART
+      conf.env.STLIB_HEXAPOD_DART_GRAPHIC = ['hexapod_dart_graphic']
+    except:
+      conf.end_msg('Not found', 'RED')
+      return
+    return 1
+```
+
+Then when a program wants to use `hexapod_dart` you have to do something like the following:
+
+```python
+def build(bld):
+    bld.program(features = 'cxx',
+                  source = 'test.cpp',
+                  includes = '. ./src',
+                  uselib = 'HEXAPOD_DART_GRAPHIC HEXAPOD_CONTROLLER DART_GRAPHIC EIGEN BOOST',
+                  target = 'test_graphic')
 ```
 
 Then in your C++ code you would have something like the following:
 
 ```cpp
 // previous includes
-#include <hexapod_dart_simu.hpp>
+#include <hexapod_dart/hexapod_dart_simu.hpp>
 
 // rest of code
 
-HexapodDARTSimu simu(controller_parameters, robot_ptr);
+hexapod_dart::HexapodDARTSimu simu(controller_parameters, robot_ptr);
 simu.run(duration_in_secs);
 
 // rest of code

@@ -85,7 +85,7 @@ def check_hexapod_robdyn(conf):
 		conf.start_msg('Checking for hexapod_robdyn graphics libs')
 		res = res and conf.find_file('libhexapod_robdyn_graphic.a', libs_check)
 		conf.end_msg('ok')
-		conf.env.LIB_HEXAPOD_CONTROLLER.append('hexapod_robdyn_graphic')
+		conf.env.LIB_HEXAPOD_ROBDYN.append('hexapod_robdyn_graphic')
 	except:
 		conf.end_msg('Not found', 'RED')
 		return
@@ -107,11 +107,11 @@ Then in your C++ code you would have something like the following:
 
 ```cpp
 // previous includes
-#include <hexapod_robdyn_simu.hpp>
+#include <hexapod_robdyn/hexapod_robdyn_simu.hpp>
 
 // rest of code
 
-HexapodRobdynSimu simu(controller_parameters, robot_ptr);
+hexapod_robdyn::HexapodRobdynSimu simu(controller_parameters, robot_ptr);
 simu.run(duration_in_secs);
 
 // rest of code

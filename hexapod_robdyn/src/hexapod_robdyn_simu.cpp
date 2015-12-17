@@ -3,19 +3,19 @@
 #endif
 
 #include <numeric>
-#include <hexapod_robdyn_simu.hpp>
+#include <hexapod_robdyn/hexapod_robdyn_simu.hpp>
 
+using namespace hexapod_robdyn;
 
-HexapodRobdynSimu::HexapodRobdynSimu(const ctrl_t& ctrl, const robot_t& robot, bool transf, double angle) :
-     _controller(ctrl, robot->broken_legs()),
-     _covered_distance(0.0),
-     _energy(0.0),
-     _env(new ode::Environment_hexa(angle)),
-     _transf(transf),
-     _old_t(0.0),
-     _old_index(0),
-     _init(false),
-     _angle(angle)
+HexapodRobdynSimu::HexapodRobdynSimu(const ctrl_t& ctrl, const robot_t& robot, bool transf, double angle) : _controller(ctrl, robot->broken_legs()),
+                                                                                                            _covered_distance(0.0),
+                                                                                                            _energy(0.0),
+                                                                                                            _env(new ode::Environment_hexa(angle)),
+                                                                                                            _transf(transf),
+                                                                                                            _old_t(0.0),
+                                                                                                            _old_index(0),
+                                                                                                            _init(false),
+                                                                                                            _angle(angle)
 {
     assert(ctrl.size() == 36);
 
@@ -36,8 +36,7 @@ HexapodRobdynSimu::~HexapodRobdynSimu()
 
 void HexapodRobdynSimu::run(double duration, bool continuous, bool chain)
 {
-    try
-    {
+    try {
         _env->set_gravity(0, 0, -9.81);
 
         if (!_init)
@@ -61,7 +60,7 @@ void HexapodRobdynSimu::run(double duration, bool continuous, bool chain)
         while ((t - _old_t) < duration)
 #endif
         {
-            angles = _controller.pos(chain? (t - _old_t): t);
+            angles = _controller.pos(chain ? (t - _old_t) : t);
             rob->move_joints(angles);
 
             Eigen::VectorXd new_state = _get_state(rob);
