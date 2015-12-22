@@ -26,13 +26,13 @@ HexapodDARTSimu::HexapodDARTSimu(const std::vector<double>& ctrl, robot_t robot)
     _osg_world_node->simulate(true);
     _osg_viewer.addWorldNode(_osg_world_node);
     _osg_viewer.setUpViewInWindow(0, 0, 640, 480);
+// _osg_viewer.getCameraManipulator()->setHomePosition(
+//     osg::Vec3d(2, 2, 2), osg::Vec3d(0, 0, 0), osg::Vec3d(0, 0, 1));
+// _osg_viewer.home();
 #endif
 }
 
-HexapodDARTSimu::~HexapodDARTSimu()
-{
-    _world.reset();
-}
+HexapodDARTSimu::~HexapodDARTSimu() {}
 
 void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
 {
