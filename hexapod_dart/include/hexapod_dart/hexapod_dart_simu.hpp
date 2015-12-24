@@ -58,7 +58,6 @@ namespace hexapod_dart {
         std::vector<double> _behavior_contact_3;
         std::vector<double> _behavior_contact_4;
         std::vector<double> _behavior_contact_5;
-        HexapodControl _controller;
         robot_t _robot;
         Eigen::Vector3d _final_pos;
         Eigen::Vector3d _final_rot;
@@ -66,6 +65,7 @@ namespace hexapod_dart {
         double _covered_distance;
         double _energy;
         dart::simulation::WorldPtr _world;
+        HexapodControl _controller;
         int _old_index;
 #ifdef GRAPHIC
         osg::ref_ptr<osgDart::WorldNode> _osg_world_node;

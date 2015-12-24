@@ -19,7 +19,11 @@ Hexapod::Hexapod(dart::dynamics::SkeletonPtr skeleton, std::vector<int> broken_l
 
 std::shared_ptr<Hexapod> Hexapod::clone() const
 {
-    return std::make_shared<Hexapod>(_skeleton->clone(), _broken_legs);
+    // safely clone the skeleton
+    _skeleton->getMutex().lock();
+    auto tmp_skel = _skeleton->clone();
+    _skeleton->getMutex().unlock();
+    return std::make_shared<Hexapod>(tmp_skel, _broken_legs);
 }
 
 dart::dynamics::SkeletonPtr Hexapod::skeleton()
@@ -80,9 +84,6 @@ dart::dynamics::SkeletonPtr Hexapod::_load_urdf(std::string urdf_file)
         tmp_skel->getJoint(i)->setPositionLimitEnforced(true);
         tmp_skel->getJoint(i)->setActuatorType(dart::dynamics::Joint::VELOCITY);
     }
-
-    tmp_skel->setPosition(5, 0.1);
-    tmp_skel->setPosition(2, DART_PI);
     return tmp_skel;
 }
 

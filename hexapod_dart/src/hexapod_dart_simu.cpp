@@ -3,14 +3,17 @@
 
 using namespace hexapod_dart;
 
-HexapodDARTSimu::HexapodDARTSimu(const std::vector<double>& ctrl, robot_t robot) : _controller(ctrl, robot),
-                                                                                   _covered_distance(0.0),
+HexapodDARTSimu::HexapodDARTSimu(const std::vector<double>& ctrl, robot_t robot) : _covered_distance(0.0),
                                                                                    _energy(0.0),
                                                                                    _world(std::make_shared<dart::simulation::World>()),
+                                                                                   _controller(ctrl, robot),
                                                                                    _old_index(0)
 {
     _world->getConstraintSolver()->setCollisionDetector(new dart::collision::DARTCollisionDetector());
     _robot = robot;
+    // set position of hexapod
+    _robot->skeleton()->setPosition(5, 0.1);
+    _robot->skeleton()->setPosition(2, DART_PI);
     _add_floor();
     _world->addSkeleton(_robot->skeleton());
     _world->setTimeStep(0.015);
