@@ -16,9 +16,14 @@
     - Configure with `./waf configure --prefix=path_to_install`
     - Compile with `./waf build`
     - Install with `./waf install`
-- [DART]: DART (Dynamic Animation and Robotics Toolkit) is a collaborative, cross-platform, open source library that provides data structures and algorithms for kinematic and dynamic applications in robotics and computer animation.
-    - See the [official instructions](https://github.com/dartsim/dart/wiki/DART%205.1%20Installation%20for%20Ubuntu) for installation.
-    - We use version 5.1 without bullet integration
+- [DART]: DART (Dynamic Animation and Robotics Toolkit) is a collaborative, cross-platform, open source library that provides data structures and algorithms for kinematic and dynamic applications in robotics and computer animation. We use the **upstream version without bullet integration**:
+    - Get the code with `git clone https://github.com/dartsim/dart.git`
+    - Make sure you have installed all of the dependencies listed [here](https://github.com/dartsim/dart/wiki/DART%205.1%20Installation%20for%20Ubuntu#install-required-dependencies).
+    - Go to the `dart` folder
+    - `mkdir build && cd build`
+    - Configure with `cmake ..`
+    - Compile with `make -j4`
+    - Install with `sudo make install`
 - [Eigen]: Linear Algebra C++ Library
 
 ### Compile and install
