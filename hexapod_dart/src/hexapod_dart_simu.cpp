@@ -59,8 +59,8 @@ void HexapodDARTSimu::run(double duration, bool continuous, bool chain)
         _world->step(false);
 
         // integrate Torque (force) over time
-        auto state = rob->skeleton()->getForces().array().abs() * _world->getTimeStep();
-        torques = torques.array() + state.array();
+        Eigen::VectorXd state = rob->skeleton()->getForces().array().abs() * _world->getTimeStep();
+        torques = torques + state;
 
         auto body = rob->skeleton()->getRootBodyNode();
         auto COM = rob->skeleton()->getCOM();
