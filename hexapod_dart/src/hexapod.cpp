@@ -23,7 +23,10 @@ std::shared_ptr<Hexapod> Hexapod::clone() const
     _skeleton->getMutex().lock();
     auto tmp_skel = _skeleton->clone();
     _skeleton->getMutex().unlock();
-    return std::make_shared<Hexapod>(tmp_skel, _broken_legs);
+    auto hexapod = std::make_shared<Hexapod>();
+    hexapod->_skeleton = tmp_skel;
+    hexapod->_broken_legs = _broken_legs;
+    return hexapod;
 }
 
 dart::dynamics::SkeletonPtr Hexapod::skeleton()
@@ -98,7 +101,7 @@ void Hexapod::_remove_legs()
 {
     std::vector<int> to_remove;
     for (size_t i = 1; i < _skeleton->getNumJoints(); i += 3) {
-        std::vector<int>::iterator it = std::find(_broken_legs.begin(), _broken_legs.end(), i / 3);
+        std::vector<int>::iterator it = std::find(_broken_legs.begin(), _broken_legs.end(), (i - 1) / 3);
         if (it != _broken_legs.end()) {
             to_remove.push_back(i);
         }

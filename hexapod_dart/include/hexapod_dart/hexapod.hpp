@@ -7,6 +7,7 @@
 namespace hexapod_dart {
     class Hexapod {
     public:
+        Hexapod() {}
         Hexapod(std::string urdf_file, std::vector<int> broken_legs);
         Hexapod(dart::dynamics::SkeletonPtr skeleton, std::vector<int> broken_legs);
 
