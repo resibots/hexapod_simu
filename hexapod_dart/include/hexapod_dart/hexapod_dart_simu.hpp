@@ -66,6 +66,7 @@ namespace hexapod_dart {
                                                                           _world(std::make_shared<dart::simulation::World>()),
                                                                           _controller(ctrl, robot),
                                                                           _old_index(0),
+                                                                          _desc_period(2),
                                                                           _break(false)
         {
             _world->getConstraintSolver()->setCollisionDetector(new dart::collision::DARTCollisionDetector());
@@ -100,7 +101,7 @@ namespace hexapod_dart {
             _break = false;
             robot_t rob = this->robot();
             double old_t = _world->getTime();
-            int index = _old_index;
+            size_t index = _old_index;
 
             // TO-DO: maybe wee need better solution for this/reset them?
             static Eigen::Vector3d init_pos = rob->pos();
@@ -141,7 +142,7 @@ namespace hexapod_dart {
                 _osg_viewer.frame();
 #endif
 
-                if (index % 2 == 0) {
+                if (index % _desc_period == 0) {
                     // update descriptors
                     boost::fusion::for_each(_descriptors, Refresh<HexapodDARTSimu, Hexapod>(*this, rob, init_pos, init_rot));
                 }
@@ -226,6 +227,16 @@ namespace hexapod_dart {
         {
             assert(_world != nullptr);
             _world->setTimeStep(step);
+        }
+
+        size_t desc_dump()
+        {
+            return _desc_period;
+        }
+
+        void set_desc_dump(size_t desc_dump)
+        {
+            _desc_period = desc_dump;
         }
 
         void stop_sim(bool disable = true)
@@ -321,7 +332,8 @@ namespace hexapod_dart {
         double _energy;
         dart::simulation::WorldPtr _world;
         hexapod_control_t _controller;
-        int _old_index;
+        size_t _old_index;
+        size_t _desc_period;
         bool _break;
         safety_measures_t _safety_measures;
         descriptors_t _descriptors;
