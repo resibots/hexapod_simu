@@ -74,16 +74,16 @@ def build(bld):
                   cxxflags = ['-DGRAPHIC'],
                   target = 'hexapod_dart_graphic')
 
-    #     bld.program(features = 'cxx',
-    #                   source = 'src/hexapod.cpp src/hexapod_control.cpp src/hexapod_dart_simu.cpp src/test.cpp',
-    #                   includes = '. ./src',
-    #                   uselib = 'BOOST BOOST_SYSTEM BOOST_REGEX DART EIGEN HEXAPOD_CONTROLLER DART_GRAPHIC',
-    #                   cxxflags = ['-DGRAPHIC'],
-    #                   target = 'test')
-    #
+        # bld.program(features = 'cxx',
+        #               source = 'src/hexapod.cpp src/hexapod_control.cpp src/hexapod_dart_simu.cpp src/test.cpp',
+        #               includes = './include',
+        #               uselib = 'BOOST BOOST_SYSTEM BOOST_REGEX DART EIGEN HEXAPOD_CONTROLLER DART_GRAPHIC',
+        #               cxxflags = ['-DGRAPHIC'],
+        #               target = 'test')
+
     # bld.program(features = 'cxx',
     #               source = 'src/hexapod.cpp src/hexapod_control.cpp src/hexapod_dart_simu.cpp src/test.cpp',
-    #               includes = '. ./src',
+    #               includes = './include',
     #               uselib = 'BOOST BOOST_SYSTEM BOOST_REGEX DART EIGEN HEXAPOD_CONTROLLER',
     #               target = 'test_plain')
 
