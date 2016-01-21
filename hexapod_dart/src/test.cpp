@@ -14,7 +14,7 @@ int main()
     // ctrl = {0.75, 0.9, 0.7, 0.75, 0.9, 0, 1, 0.1, 0.35, 0.2, 0.1, 0.15, 0.95, 0.25, 0.15, 0, 0.15, 0.15, 0.85, 0.95, 0.6, 0.9, 1, 0.2, 0.9, 0.85, 0.8, 0.25, 0.6, 0.95, 1, 0, 0.6, 0.3, 0.85, 0.75};
     // ctrl = {0.05, 0.8, 0.1, 0.9, 0.7, 0.35, 0.9, 1, 0.3, 0.7, 0.05, 0.15, 0.95, 0.75, 0.7, 0.95, 0.6, 0.6, 0.75, 0.7, 0.95, 0.6, 0.3, 0.35, 1, 0.4, 0.65, 0.55, 0.25, 0.6, 0.9, 0.75, 0.4, 1, 0.7, 0.85};
 
-    hexapod_dart::HexapodDARTSimu simu(ctrl, global_robot);
+    hexapod_dart::HexapodDARTSimu<> simu(ctrl, global_robot);
     // for(int i=0;i<167;i++)
     //     simu.run(0.015, true);
 
@@ -24,6 +24,12 @@ int main()
     simu.run(5);
     std::cout << simu.covered_distance() << " " << simu.arrival_angle() << std::endl;
     std::cout << simu.energy() << std::endl;
+    std::vector<double> v;
+    simu.get_descriptor<hexapod_dart::descriptors::DutyCycle>(v);
+    for (size_t i = 0; i < v.size(); i++) {
+        std::cout << v[i] << " ";
+    }
+    std::cout << std::endl;
 
     global_robot.reset();
     return 0;
