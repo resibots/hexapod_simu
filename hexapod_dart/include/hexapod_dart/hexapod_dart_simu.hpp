@@ -147,13 +147,6 @@ namespace hexapod_dart {
                     boost::fusion::for_each(_descriptors, Refresh<HexapodDARTSimu, Hexapod>(*this, rob, init_pos, init_rot));
                 }
 
-                // roll-pitch-yaw
-                auto rot_mat = dart::math::expMapRot(rob->rot() - init_rot);
-                auto rpy = dart::math::matrixToEulerXYZ(rot_mat);
-
-                _behavior_traj.push_back(rob->pos() - init_pos);
-                _rotation_traj.push_back(std::round(rpy(2) * 100) / 100.0);
-
                 ++index;
             }
             _energy += torques.sum();
@@ -249,16 +242,6 @@ namespace hexapod_dart {
             return _controller;
         }
 
-        const std::vector<Eigen::Vector3d>& pos_traj()
-        {
-            return _behavior_traj;
-        }
-
-        const std::vector<double>& rot_traj()
-        {
-            return _rotation_traj;
-        }
-
     protected:
         bool _stabilize_robot(bool update_ctrl = false)
         {
@@ -322,8 +305,6 @@ namespace hexapod_dart {
             _world->addSkeleton(floor);
         }
 
-        std::vector<Eigen::Vector3d> _behavior_traj;
-        std::vector<double> _rotation_traj;
         robot_t _robot;
         Eigen::Vector3d _final_pos;
         Eigen::Vector3d _final_rot;

@@ -5,6 +5,8 @@
 #include <vector>
 #include <numeric>
 
+#include <Eigen/Core>
+
 #include <hexapod_dart/hexapod.hpp>
 
 namespace hexapod_dart {
@@ -66,6 +68,48 @@ namespace hexapod_dart {
 
         protected:
             std::map<size_t, std::vector<size_t>> _contacts;
+        };
+
+        struct PositionTraj : public DescriptorBase {
+        public:
+            PositionTraj() {}
+
+            template <typename Simu, typename robot>
+            void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector3d& init_pos, const Eigen::Vector3d& init_rot)
+            {
+                _pos_traj.push_back(rob->pos() - init_pos);
+            }
+
+            void get(std::vector<Eigen::Vector3d>& results)
+            {
+                results = _pos_traj;
+            }
+
+        protected:
+            std::vector<Eigen::Vector3d> _pos_traj;
+        };
+
+        struct RotationTraj : public DescriptorBase {
+        public:
+            RotationTraj() {}
+
+            template <typename Simu, typename robot>
+            void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector3d& init_pos, const Eigen::Vector3d& init_rot)
+            {
+                // roll-pitch-yaw
+                auto rot_mat = dart::math::expMapRot(rob->rot() - init_rot);
+                auto rpy = dart::math::matrixToEulerXYZ(rot_mat);
+
+                _rotation_traj.push_back(std::round(rpy(2) * 100) / 100.0);
+            }
+
+            void get(std::vector<double>& results)
+            {
+                results = _rotation_traj;
+            }
+
+        protected:
+            std::vector<double> _rotation_traj;
         };
     }
 }
