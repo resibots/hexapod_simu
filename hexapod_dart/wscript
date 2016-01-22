@@ -59,38 +59,23 @@ def configure(conf):
 
 
 def build(bld):
-    bld.stlib(features = 'cxx cxxstlib',
-              source = 'src/hexapod.cpp src/hexapod_control.cpp src/hexapod_dart_simu.cpp',
-              includes = './include',
-              uselib = 'BOOST BOOST_SYSTEM BOOST_REGEX DART EIGEN HEXAPOD_CONTROLLER',
-              target = 'hexapod_dart')
 
     if bld.get_env()['BUILD_GRAPHIC'] == True:
+        bld.program(features = 'cxx',
+                      source = 'src/test.cpp',
+                      includes = './include',
+                      uselib = 'BOOST BOOST_SYSTEM BOOST_REGEX DART EIGEN HEXAPOD_CONTROLLER DART_GRAPHIC',
+                      cxxflags = ['-DGRAPHIC'],
+                      target = 'test')
 
-        bld.stlib(features = 'cxx cxxstlib',
-                  source = 'src/hexapod.cpp src/hexapod_control.cpp src/hexapod_dart_simu.cpp',
+    bld.program(features = 'cxx',
+                  source = 'src/test.cpp',
                   includes = './include',
-                  uselib = 'BOOST BOOST_SYSTEM BOOST_REGEX DART EIGEN HEXAPOD_CONTROLLER DART_GRAPHIC',
-                  cxxflags = ['-DGRAPHIC'],
-                  target = 'hexapod_dart_graphic')
-
-        # bld.program(features = 'cxx',
-        #               source = 'src/hexapod.cpp src/hexapod_control.cpp src/hexapod_dart_simu.cpp src/test.cpp',
-        #               includes = './include',
-        #               uselib = 'BOOST BOOST_SYSTEM BOOST_REGEX DART EIGEN HEXAPOD_CONTROLLER DART_GRAPHIC',
-        #               cxxflags = ['-DGRAPHIC'],
-        #               target = 'test')
-
-    # bld.program(features = 'cxx',
-    #               source = 'src/hexapod.cpp src/hexapod_control.cpp src/hexapod_dart_simu.cpp src/test.cpp',
-    #               includes = './include',
-    #               uselib = 'BOOST BOOST_SYSTEM BOOST_REGEX DART EIGEN HEXAPOD_CONTROLLER',
-    #               target = 'test_plain')
+                  uselib = 'BOOST BOOST_SYSTEM BOOST_REGEX DART EIGEN HEXAPOD_CONTROLLER',
+                  target = 'test_plain')
 
     bld.install_files('${PREFIX}/include/hexapod_dart', 'include/hexapod_dart/hexapod_dart_simu.hpp')
     bld.install_files('${PREFIX}/include/hexapod_dart', 'include/hexapod_dart/hexapod.hpp')
     bld.install_files('${PREFIX}/include/hexapod_dart', 'include/hexapod_dart/hexapod_control.hpp')
-    bld.install_files('${PREFIX}/lib', 'build/libhexapod_dart.a')
-
-    if bld.get_env()['BUILD_GRAPHIC'] == True:
-        bld.install_files('${PREFIX}/lib', 'build/libhexapod_dart_graphic.a')
+    bld.install_files('${PREFIX}/include/hexapod_dart', 'include/hexapod_dart/safety_measures.hpp')
+    bld.install_files('${PREFIX}/include/hexapod_dart', 'include/hexapod_dart/descriptors.hpp')

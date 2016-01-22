@@ -11,16 +11,63 @@ namespace hexapod_dart {
         using robot_t = std::shared_ptr<Hexapod>;
 
         HexapodControl() {}
-        HexapodControl(const std::vector<double>& ctrl, robot_t robot);
+        HexapodControl(const std::vector<double>& ctrl, robot_t robot)
+            : _controller(ctrl, robot->broken_legs()), _robot(robot)
+        {
+            _target_positions = _robot->skeleton()->getPositions();
 
-        void set_parameters(const std::vector<double>& ctrl);
-        std::vector<double> parameters();
+            size_t dof = _robot->skeleton()->getNumDofs();
 
-        robot_t robot();
+            _p = Eigen::VectorXd::Zero(dof);
 
-        void update(double t);
+            // first 6 DOF are 6d position - we don't want to put P values there
+            for (size_t i = 0; i < 6; ++i) {
+                _p(i) = 0.0;
+            }
 
-        void set_commands();
+            for (size_t i = 6; i < dof; ++i) {
+                _p(i) = 1.0;
+            }
+        }
+
+        void set_parameters(const std::vector<double>& ctrl)
+        {
+            _controller.set_parameters(ctrl);
+        }
+
+        std::vector<double> parameters()
+        {
+            return _controller.parameters();
+        }
+
+        robot_t robot()
+        {
+            return _robot;
+        }
+
+        void update(double t)
+        {
+            auto angles = _controller.pos(t);
+            for (size_t i = 0; i < angles.size(); i++)
+                _target_positions(i + 6) = angles[i];
+
+            set_commands();
+        }
+
+        void set_commands()
+        {
+            if (_robot == nullptr)
+                return;
+
+            Eigen::VectorXd q = _robot->skeleton()->getPositions();
+            Eigen::VectorXd q_err = _target_positions - q;
+
+            double gain = 1.0 / (DART_PI * _robot->skeleton()->getTimeStep());
+            Eigen::VectorXd vel = q_err * gain;
+            vel = vel.cwiseProduct(_p);
+
+            _robot->skeleton()->setCommands(vel);
+        }
 
     protected:
         hexapod_controller::HexapodControllerSimple _controller;
