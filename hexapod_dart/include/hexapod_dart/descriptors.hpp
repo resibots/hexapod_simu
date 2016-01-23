@@ -100,7 +100,7 @@ namespace hexapod_dart {
                 auto rot_mat = dart::math::expMapRot(rob->rot() - init_rot);
                 auto rpy = dart::math::matrixToEulerXYZ(rot_mat);
 
-                _rotation_traj.push_back(std::round(rpy(2) * 100) / 100.0);
+                _rotation_traj.push_back(rpy(2));
             }
 
             void get(std::vector<double>& results)
