@@ -85,6 +85,9 @@ def check_dart(conf):
 			conf.env.LIB_DART.append('assimp')
 		else:
 			conf.end_msg('Not found - Your programs may not compile', 'RED')
+		if bullet_found:
+			conf.env.LIB_DART.append('BulletCollision')
+			conf.env.LIB_DART.append('LinearMath')
 		conf.start_msg('Checking for DART OSG includes (optional)')
 		res = res and conf.find_file('osgDart/osgDart.h', includes_check)
 		conf.end_msg('ok')
