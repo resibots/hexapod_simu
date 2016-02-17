@@ -77,7 +77,7 @@ namespace hexapod_dart {
             template <typename Simu, typename robot>
             void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector3d& init_pos, const Eigen::Vector3d& init_rot)
             {
-                _pos_traj.push_back(rob->pos() - init_pos);
+                _pos_traj.push_back(rob->pos());
             }
 
             void get(std::vector<Eigen::Vector3d>& results)
@@ -97,7 +97,7 @@ namespace hexapod_dart {
             void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector3d& init_pos, const Eigen::Vector3d& init_rot)
             {
                 // roll-pitch-yaw
-                auto rot_mat = dart::math::expMapRot(rob->rot() - init_rot);
+                auto rot_mat = dart::math::expMapRot(rob->rot());
                 auto rpy = dart::math::matrixToEulerXYZ(rot_mat);
 
                 _rotation_traj.push_back(rpy(2));

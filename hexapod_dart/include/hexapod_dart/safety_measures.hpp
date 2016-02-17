@@ -35,11 +35,11 @@ namespace hexapod_dart {
             template <typename Simu, typename robot>
             void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector3d& init_pos, const Eigen::Vector3d& init_rot)
             {
-                auto rot_mat = dart::math::expMapRot(rob->rot() - init_rot);
+                auto rot_mat = dart::math::expMapRot(rob->rot());
                 Eigen::Vector3d z_axis = {0.0, 0.0, 1.0};
                 Eigen::Vector3d robot_z_axis = rot_mat * z_axis;
                 double z_angle = std::atan2((z_axis.cross(robot_z_axis)).norm(), z_axis.dot(robot_z_axis));
-                if (std::abs(z_angle) >= 1.2)
+                if (std::abs(z_angle) >= DART_PI_HALF)
                     simu.stop_sim();
             }
 
