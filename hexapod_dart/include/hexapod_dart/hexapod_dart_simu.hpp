@@ -88,9 +88,9 @@ namespace hexapod_dart {
             _osg_world_node = new osgDart::WorldNode(_world);
             _osg_world_node->simulate(true);
             _osg_viewer.addWorldNode(_osg_world_node);
-            // _osg_viewer.setUpViewInWindow(0, 0, 640, 480);
-            // full-screen
-            _osg_viewer.setUpViewOnSingleScreen();
+            _osg_viewer.setUpViewInWindow(0, 0, 640, 480);
+// full-screen
+// _osg_viewer.setUpViewOnSingleScreen();
 #endif
         }
 
@@ -176,6 +176,11 @@ namespace hexapod_dart {
         robot_t robot()
         {
             return _robot;
+        }
+
+        dart::simulation::WorldPtr world()
+        {
+            return _world;
         }
 
         template <typename Desc, typename T>

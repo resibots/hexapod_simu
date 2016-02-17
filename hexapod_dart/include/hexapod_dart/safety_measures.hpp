@@ -39,7 +39,7 @@ namespace hexapod_dart {
                 Eigen::Vector3d z_axis = {0.0, 0.0, 1.0};
                 Eigen::Vector3d robot_z_axis = rot_mat * z_axis;
                 double z_angle = std::atan2((z_axis.cross(robot_z_axis)).norm(), z_axis.dot(robot_z_axis));
-                if (std::abs(z_angle) >= DART_PI_HALF)
+                if (std::abs(z_angle) >= 1.2)
                     simu.stop_sim();
             }
 
