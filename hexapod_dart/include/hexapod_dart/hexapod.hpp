@@ -72,7 +72,7 @@ namespace hexapod_dart {
         {
             auto pos_and_rot = _skeleton->getPositions();
             Eigen::Vector6d tmp;
-            tmp << pos_and_rot(3), pos_and_rot(4), pos_and_rot(5), pos_and_rot(0), pos_and_rot(1), pos_and_rot(2);
+            tmp << pos_and_rot(0), pos_and_rot(1), pos_and_rot(2), pos_and_rot(3), pos_and_rot(4), pos_and_rot(5);
             return tmp;
         }
 

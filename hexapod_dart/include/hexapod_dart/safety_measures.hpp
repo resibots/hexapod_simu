@@ -8,7 +8,7 @@ namespace hexapod_dart {
         struct BodyColliding {
         public:
             template <typename Simu, typename robot>
-            void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector3d& init_pos, const Eigen::Vector3d& init_rot)
+            void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector6d& init_trans)
             {
                 auto body = rob->skeleton()->getRootBodyNode();
                 if (body->isColliding())
@@ -19,7 +19,7 @@ namespace hexapod_dart {
         struct MaxHeight {
         public:
             template <typename Simu, typename robot>
-            void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector3d& init_pos, const Eigen::Vector3d& init_rot)
+            void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector6d& init_trans)
             {
                 auto COM = rob->skeleton()->getCOM();
                 if (std::abs(COM(2)) > 0.3)
@@ -33,7 +33,7 @@ namespace hexapod_dart {
         struct TurnOver {
         public:
             template <typename Simu, typename robot>
-            void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector3d& init_pos, const Eigen::Vector3d& init_rot)
+            void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector6d& init_trans)
             {
                 auto rot_mat = dart::math::expMapRot(rob->rot());
                 Eigen::Vector3d z_axis = {0.0, 0.0, 1.0};

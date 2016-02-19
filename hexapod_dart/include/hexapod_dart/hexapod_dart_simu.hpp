@@ -31,15 +31,15 @@ namespace hexapod_dart {
 
     template <typename Simu, typename robot>
     struct Refresh {
-        Refresh(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector3d& init_pos, const Eigen::Vector3d& init_rot)
-            : _simu(simu), _robot(rob), _init_pos(init_pos), _init_rot(init_rot) {}
+        Refresh(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector6d& init_trans)
+            : _simu(simu), _robot(rob), _init_trans(init_trans) {}
 
         Simu& _simu;
         std::shared_ptr<robot> _robot;
-        Eigen::Vector3d _init_pos, _init_rot;
+        Eigen::Vector6d _init_trans;
 
         template <typename T>
-        void operator()(T& x) const { x(_simu, _robot, _init_pos, _init_rot); }
+        void operator()(T& x) const { x(_simu, _robot, _init_trans); }
     };
 
     template <class A1 = boost::parameter::void_, class A2 = boost::parameter::void_, class A3 = boost::parameter::void_>
@@ -106,6 +106,7 @@ namespace hexapod_dart {
             // TO-DO: maybe wee need better solution for this/reset them?
             static Eigen::Vector3d init_pos = rob->pos();
             static Eigen::Vector3d init_rot = rob->rot();
+            static Eigen::Vector6d init_trans = rob->pose();
             static Eigen::VectorXd torques(rob->skeleton()->getNumDofs());
 
 #ifdef GRAPHIC
@@ -123,7 +124,7 @@ namespace hexapod_dart {
                 torques = torques + state;
 
                 // update safety measures
-                boost::fusion::for_each(_safety_measures, Refresh<HexapodDARTSimu, Hexapod>(*this, rob, init_pos, init_rot));
+                boost::fusion::for_each(_safety_measures, Refresh<HexapodDARTSimu, Hexapod>(*this, rob, init_trans));
 
                 if (_break) {
                     _covered_distance = -10002.0;
@@ -144,7 +145,7 @@ namespace hexapod_dart {
 
                 if (index % _desc_period == 0) {
                     // update descriptors
-                    boost::fusion::for_each(_descriptors, Refresh<HexapodDARTSimu, Hexapod>(*this, rob, init_pos, init_rot));
+                    boost::fusion::for_each(_descriptors, Refresh<HexapodDARTSimu, Hexapod>(*this, rob, init_trans));
                 }
 
                 ++index;
