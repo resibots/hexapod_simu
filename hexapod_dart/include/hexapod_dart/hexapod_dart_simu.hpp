@@ -73,7 +73,6 @@ namespace hexapod_dart {
             _robot = robot;
             // set position of hexapod
             _robot->skeleton()->setPosition(5, 0.2);
-            _robot->skeleton()->setPosition(2, DART_PI);
             _add_floor();
             _world->addSkeleton(_robot->skeleton());
             _world->setTimeStep(0.015);
