@@ -107,7 +107,7 @@ namespace hexapod_dart {
 
         struct PositionDiffTraj : public DescriptorBase {
         public:
-            PositionTraj() {}
+            PositionDiffTraj() {}
 
             template <typename Simu, typename robot>
             void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector6d& init_trans)
@@ -171,12 +171,12 @@ namespace hexapod_dart {
 
         struct RotationDiffTraj : public DescriptorBase {
         public:
-            RotationTraj() {}
+            RotationDiffTraj() {}
 
             template <typename Simu, typename robot>
             void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector6d& init_trans)
             {
-              if (_pos_traj.size() == 0)
+              if (_rotation_traj.size() == 0)
                 _prev_trans = init_trans;
 
               // roll-pitch-yaw
@@ -206,7 +206,7 @@ namespace hexapod_dart {
             JointsTraj() {}
 
             template <typename Simu, typename robot>
-            void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector3d& init_pos, const Eigen::Vector3d& init_rot)
+            void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector6d& init_trans)
             {
                 std::vector<size_t> ind;
                 for(size_t i=0;i<rob->skeleton()->getNumDofs()-6;i++)
@@ -225,42 +225,6 @@ namespace hexapod_dart {
 
         protected:
             std::vector<std::vector<double>> _jnt_traj;
-        };
-
-        ////////////////////////////////////////////////////////////////////////
-
-        struct RotationDiffTraj : public DescriptorBase {
-        public:
-            RotationDiffTraj() {}
-
-            template <typename Simu, typename robot>
-            void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector3d& init_pos, const Eigen::Vector3d& init_rot)
-            {
-                if (_rotation_traj.size() == 0)
-                {
-                  // roll-pitch-yaw
-                  Eigen::Matrix3d rot_mat = dart::math::expMapRot(rob->rot() - init_rot);
-                  Eigen::Vector3d rpy = dart::math::matrixToEulerXYZ(rot_mat);
-
-                  _rotation_traj.push_back(rpy(2));
-                }
-                else
-                {
-                  // roll-pitch-yaw
-                  Eigen::Matrix3d rot_mat = dart::math::expMapRot( rob->rot() );
-                  Eigen::Vector3d rpy = dart::math::matrixToEulerXYZ(rot_mat);
-
-                  _rotation_traj.push_back(rpy(2));
-                }
-            }
-
-            void get(std::vector<double>& results)
-            {
-                results = _rotation_traj;
-            }
-
-        protected:
-            std::vector<double> _rotation_traj;
         };
     }
 }
