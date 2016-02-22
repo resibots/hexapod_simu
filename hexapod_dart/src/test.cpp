@@ -5,7 +5,7 @@ int main()
 {
     std::vector<int> brk = {};
 
-    auto global_robot = std::make_shared<hexapod_dart::Hexapod>("/home/kchatzil/Workspaces/ResiBots/source/sferes2/pexod.urdf", brk);
+    auto global_robot = std::make_shared<hexapod_dart::Hexapod>("/home/vvassili/Workspaces/ResiBots/share/hexapod_models/URDF/pexod_springs.urdf", brk);
 
     std::vector<double> ctrl;
     ctrl = {1, 0, 0.5, 0.25, 0.25, 0.5, 1, 0.5, 0.5, 0.25, 0.75, 0.5, 1, 0, 0.5, 0.25, 0.25, 0.5, 1, 0, 0.5, 0.25, 0.75, 0.5, 1, 0.5, 0.5, 0.25, 0.25, 0.5, 1, 0, 0.5, 0.25, 0.75, 0.5};
@@ -14,7 +14,7 @@ int main()
     // ctrl = {0.75, 0.9, 0.7, 0.75, 0.9, 0, 1, 0.1, 0.35, 0.2, 0.1, 0.15, 0.95, 0.25, 0.15, 0, 0.15, 0.15, 0.85, 0.95, 0.6, 0.9, 1, 0.2, 0.9, 0.85, 0.8, 0.25, 0.6, 0.95, 1, 0, 0.6, 0.3, 0.85, 0.75};
     // ctrl = {0.05, 0.8, 0.1, 0.9, 0.7, 0.35, 0.9, 1, 0.3, 0.7, 0.05, 0.15, 0.95, 0.75, 0.7, 0.95, 0.6, 0.6, 0.75, 0.7, 0.95, 0.6, 0.3, 0.35, 1, 0.4, 0.65, 0.55, 0.25, 0.6, 0.9, 0.75, 0.4, 1, 0.7, 0.85};
 
-    using desc_t = boost::fusion::vector<hexapod_dart::descriptors::DutyCycle, hexapod_dart::descriptors::RotationTraj>;
+    using desc_t = boost::fusion::vector<hexapod_dart::descriptors::DutyCycle, hexapod_dart::descriptors::RotationTraj, hexapod_dart::descriptors::JointsTraj>;
     hexapod_dart::HexapodDARTSimu<hexapod_dart::desc<desc_t>> simu(ctrl, global_robot);
     // for(int i=0;i<167;i++)
     //     simu.run(0.015, true);
@@ -37,6 +37,10 @@ int main()
         std::cout << vv[i] << " ";
     }
     std::cout << std::endl;
+
+    std::vector<std::vector<double>> vvv;
+    simu.get_descriptor<hexapod_dart::descriptors::JointsTraj>(vvv);
+    std::cout<<vvv[0].size()<<std::endl;
 
     global_robot.reset();
     return 0;

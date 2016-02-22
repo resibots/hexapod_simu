@@ -30,6 +30,8 @@ namespace hexapod_dart {
             }
         };
 
+        ////////////////////////////////////////////////////////////////////////
+
         struct DutyCycle : public DescriptorBase {
         public:
             DutyCycle()
@@ -70,6 +72,8 @@ namespace hexapod_dart {
             std::map<size_t, std::vector<size_t>> _contacts;
         };
 
+        ////////////////////////////////////////////////////////////////////////
+
         struct PositionTraj : public DescriptorBase {
         public:
             PositionTraj() {}
@@ -99,6 +103,30 @@ namespace hexapod_dart {
             std::vector<Eigen::Vector3d> _pos_traj;
         };
 
+        ////////////////////////////////////////////////////////////////////////
+
+        struct PositionDiffTraj : public DescriptorBase {
+        public:
+            PositionDiffTraj() {}
+
+            template <typename Simu, typename robot>
+            void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector3d& init_pos, const Eigen::Vector3d& init_rot)
+            {
+                if (_pos_traj.size() == 0)
+                  _pos_traj.push_back(rob->pos() - init_pos);
+                else
+                  _pos_traj.push_back( rob->pos() - _pos_traj.back() );
+            }
+
+            void get(std::vector<Eigen::Vector3d>& results)
+            {
+                results = _pos_traj;
+            }
+
+        protected:
+            std::vector<Eigen::Vector3d> _pos_traj;
+        };
+
         struct RotationTraj : public DescriptorBase {
         public:
             RotationTraj() {}
@@ -112,6 +140,118 @@ namespace hexapod_dart {
                 auto rpy = dart::math::matrixToEulerXYZ(ro.inverse() * rr);
 
                 _rotation_traj.push_back(rpy(2));
+            }
+
+            void get(std::vector<double>& results)
+            {
+                results = _rotation_traj;
+            }
+
+        protected:
+            std::vector<double> _rotation_traj;
+        };
+
+        // struct PositionTraj : public DescriptorBase {
+        // public:
+        //     PositionTraj() {}
+        //
+        //     template <typename Simu, typename robot>
+        //     void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector3d& init_pos, const Eigen::Vector3d& init_rot)
+        //     {
+        //         _pos_traj.push_back(rob->pos() - init_pos);
+        //     }
+        //
+        //     void get(std::vector<Eigen::Vector3d>& results)
+        //     {
+        //         results = _pos_traj;
+        //     }
+        //
+        // protected:
+        //     std::vector<Eigen::Vector3d> _pos_traj;
+        // };
+
+        ////////////////////////////////////////////////////////////////////////
+
+
+
+        ////////////////////////////////////////////////////////////////////////
+
+        struct JointsTraj : public DescriptorBase {
+        public:
+            JointsTraj() {}
+
+            template <typename Simu, typename robot>
+            void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector3d& init_pos, const Eigen::Vector3d& init_rot)
+            {
+                std::vector<size_t> ind;
+                for(size_t i=0;i<rob->skeleton()->getNumDofs()-6;i++)
+                  ind.push_back(i+6);
+                Eigen::VectorXd pp = rob->skeleton()->getPositions(ind);
+                std::vector<double> pos;
+                for(size_t i=0;i<pp.size();i++)
+                  pos.push_back(pp(i));
+                _jnt_traj.push_back(pos);
+            }
+
+            void get(std::vector<std::vector<double>>& results)
+            {
+                results = _jnt_traj;
+            }
+
+        protected:
+            std::vector<std::vector<double>> _jnt_traj;
+        };
+
+        ////////////////////////////////////////////////////////////////////////
+
+        // struct RotationTraj : public DescriptorBase {
+        // public:
+        //     RotationTraj() {}
+        //
+        //     template <typename Simu, typename robot>
+        //     void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector3d& init_pos, const Eigen::Vector3d& init_rot)
+        //     {
+        //         // roll-pitch-yaw
+        //         auto rot_mat = dart::math::expMapRot(rob->rot() - init_rot);
+        //         auto rpy = dart::math::matrixToEulerXYZ(rot_mat);
+        //
+        //         _rotation_traj.push_back(rpy(2));
+        //     }
+        //
+        //     void get(std::vector<double>& results)
+        //     {
+        //         results = _rotation_traj;
+        //     }
+        //
+        // protected:
+        //     std::vector<double> _rotation_traj;
+        // };
+
+        ////////////////////////////////////////////////////////////////////////
+
+        struct RotationDiffTraj : public DescriptorBase {
+        public:
+            RotationDiffTraj() {}
+
+            template <typename Simu, typename robot>
+            void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector3d& init_pos, const Eigen::Vector3d& init_rot)
+            {
+                if (_rotation_traj.size() == 0)
+                {
+                  // roll-pitch-yaw
+                  Eigen::Matrix3d rot_mat = dart::math::expMapRot(rob->rot() - init_rot);
+                  Eigen::Vector3d rpy = dart::math::matrixToEulerXYZ(rot_mat);
+
+                  _rotation_traj.push_back(rpy(2));
+                }
+                else
+                {
+                  // roll-pitch-yaw
+                  Eigen::Matrix3d rot_mat = dart::math::expMapRot( rob->rot() );
+                  Eigen::Vector3d rpy = dart::math::matrixToEulerXYZ(rot_mat);
+
+                  _rotation_traj.push_back(rpy(2));
+                }
             }
 
             void get(std::vector<double>& results)
