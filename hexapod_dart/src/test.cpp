@@ -31,12 +31,12 @@ int main()
         std::cout << v[i] << " ";
     }
     std::cout << std::endl;
-    std::vector<double> vv;
-    simu.get_descriptor<hexapod_dart::descriptors::RotationTraj>(vv);
-    for (size_t i = 0; i < vv.size(); i++) {
-        std::cout << vv[i] << " ";
-    }
-    std::cout << std::endl;
+    // std::vector<double> vv;
+    // simu.get_descriptor<hexapod_dart::descriptors::RotationTraj>(vv);
+    // for (size_t i = 0; i < vv.size(); i++) {
+    //     std::cout << vv[i] << " ";
+    // }
+    // std::cout << std::endl;
 
     std::vector<std::vector<double>> vvv;
     simu.get_descriptor<hexapod_dart::descriptors::JointsTraj>(vvv);
