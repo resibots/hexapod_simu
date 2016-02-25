@@ -103,8 +103,6 @@ namespace hexapod_dart {
             size_t index = _old_index;
 
             // TO-DO: maybe wee need better solution for this/reset them?
-            static Eigen::Vector3d init_pos = rob->pos();
-            static Eigen::Vector3d init_rot = rob->rot();
             static Eigen::Vector6d init_trans = rob->pose();
             static Eigen::VectorXd torques(rob->skeleton()->getNumDofs());
 
@@ -161,16 +159,26 @@ namespace hexapod_dart {
                 }
             }
 
-            Eigen::Vector3d stab_pos = rob->pos();
-            Eigen::Vector3d stab_rot = rob->rot();
+            // Position computation
+            Eigen::Vector6d pose = rob->pose();
+            Eigen::Matrix3d rr = dart::math::expMapRot({pose[0], pose[1], pose[2]});
+            Eigen::Matrix3d ro = dart::math::expMapRot({init_trans[0], init_trans[1], init_trans[2]});
+            Eigen::MatrixXd init(4, 4);
+            init << ro(0, 0), ro(0, 1), ro(0, 2), init_trans[3], ro(1, 0), ro(1, 1), ro(1, 2), init_trans[4], ro(2, 0), ro(2, 1), ro(2, 2), init_trans[5], 0, 0, 0, 1;
+            Eigen::MatrixXd pp(4, 4);
+            pp << rr(0, 0), rr(0, 1), rr(0, 2), pose[3], rr(1, 0), rr(1, 1), rr(1, 2), pose[4], rr(2, 0), rr(2, 1), rr(2, 2), pose[5], 0, 0, 0, 1;
+            Eigen::Vector4d p = {init_trans[3], init_trans[4], init_trans[5], 1.0};
+            p = init.inverse() * pp * p;
 
-            _final_pos = stab_pos - init_pos;
-            _final_rot = stab_rot - init_rot;
+            _final_pos = Eigen::Vector3d(p(0), p(1), p(2));
 
             _covered_distance = std::round(_final_pos(0) * 100) / 100.0;
 
+            // Angle computation
+            _final_rot = dart::math::matrixToEulerXYZ(ro.inverse() * rr);
+
             // roll-pitch-yaw
-            _arrival_angle = std::round(dart::math::matrixToEulerXYZ(dart::math::expMapRot(_final_rot))(2) * 100) / 100.0;
+            _arrival_angle = std::round(_final_rot(2) * 100) / 100.0;
         }
 
         robot_t robot()

@@ -81,10 +81,10 @@ namespace hexapod_dart {
             template <typename Simu, typename robot>
             void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector6d& init_trans)
             {
-                Eigen::Matrix3d rr = dart::math::expMapRot(rob->rot());
+                Eigen::Vector6d pose = rob->pose();
+                Eigen::Matrix3d rr = dart::math::expMapRot({pose[0], pose[1], pose[2]});
                 Eigen::Matrix3d ro = dart::math::expMapRot({init_trans[0], init_trans[1], init_trans[2]});
                 Eigen::MatrixXd init(4, 4);
-                Eigen::Vector6d pose = rob->pose();
                 init << ro(0, 0), ro(0, 1), ro(0, 2), init_trans[3], ro(1, 0), ro(1, 1), ro(1, 2), init_trans[4], ro(2, 0), ro(2, 1), ro(2, 2), init_trans[5], 0, 0, 0, 1;
                 Eigen::MatrixXd pp(4, 4);
                 pp << rr(0, 0), rr(0, 1), rr(0, 2), pose[3], rr(1, 0), rr(1, 1), rr(1, 2), pose[4], rr(2, 0), rr(2, 1), rr(2, 2), pose[5], 0, 0, 0, 1;
