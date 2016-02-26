@@ -5,7 +5,13 @@ int main()
 {
     std::vector<int> brk = {};
 
-    auto global_robot = std::make_shared<hexapod_dart::Hexapod>("/home/vvassili/Workspaces/ResiBots/share/hexapod_models/URDF/pexod_springs.urdf", brk);
+    const char * env_p = std::getenv("RESIBOTS_DIR");
+    std::shared_ptr<hexapod_dart::Hexapod> global_robot;
+
+    if (env_p) //if the environment variable exists
+      global_robot = std::make_shared<hexapod_dart::Hexapod>(std::string(env_p) + "/share/hexapod_models/URDF/pexod.urdf", brk);
+    else //if it does not exist, we might be running this on the cluster
+      global_robot = std::make_shared<hexapod_dart::Hexapod>("/nfs/hal01/vvassili/Workspaces/Resibots/share/hexapod_models/URDF/pexod.urdf", brk);
 
     std::vector<double> ctrl;
     ctrl = {1, 0, 0.5, 0.25, 0.25, 0.5, 1, 0.5, 0.5, 0.25, 0.75, 0.5, 1, 0, 0.5, 0.25, 0.25, 0.5, 1, 0, 0.5, 0.25, 0.75, 0.5, 1, 0.5, 0.5, 0.25, 0.25, 0.5, 1, 0, 0.5, 0.25, 0.75, 0.5};
