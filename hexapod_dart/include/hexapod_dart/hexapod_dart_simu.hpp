@@ -69,7 +69,7 @@ namespace hexapod_dart {
                                                                           _desc_period(2),
                                                                           _break(false)
         {
-            _world->getConstraintSolver()->setCollisionDetector(new dart::collision::DARTCollisionDetector());
+            _world->getConstraintSolver()->setCollisionDetector(std::unique_ptr<dart::collision::DARTCollisionDetector>(new dart::collision::DARTCollisionDetector()));
             _robot = robot;
             // set position of hexapod
             _robot->skeleton()->setPosition(5, 0.2);
