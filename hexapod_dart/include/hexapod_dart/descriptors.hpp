@@ -74,6 +74,61 @@ namespace hexapod_dart {
 
         ////////////////////////////////////////////////////////////////////////
 
+        struct OrientationBD : public DescriptorBase {
+        public:
+          OrientationBD() {}
+
+          template <typename Simu, typename robot>
+          void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector6d& init_trans)
+          {
+              // roll-pitch-yaw
+              Eigen::Matrix3d rr = dart::math::expMapRot(rob->rot());
+              Eigen::Matrix3d ro = dart::math::expMapRot({init_trans[0], init_trans[1], init_trans[2]});
+              auto rpy = dart::math::matrixToEulerXYZ(ro.inverse() * rr);
+
+              _roll_vec.push_back(rpy(0));
+              _pitch_vec.push_back(rpy(1));
+              _yaw_vec.push_back(rpy(2));
+          }
+
+          void get(std::vector<double>& results)
+          {
+              results.clear();
+              results.push_back(countofvector(_pitch_vec , (_perc_threshold / 100.0) * DART_PI, true));
+              results.push_back(countofvector(_pitch_vec , (_perc_threshold / 100.0) * DART_PI, false));
+              results.push_back(countofvector(_roll_vec , (_perc_threshold / 100.0) * DART_PI, true));
+              results.push_back(countofvector(_roll_vec , (_perc_threshold / 100.0) * DART_PI, false));
+              results.push_back(countofvector(_yaw_vec , (_perc_threshold / 100.0) * DART_PI, true));
+              results.push_back(countofvector(_yaw_vec , (_perc_threshold / 100.0) * DART_PI, false));
+          }
+
+      protected:
+          const double _perc_threshold = 0.5;
+
+          std::vector<double> _roll_vec, _pitch_vec, _yaw_vec;
+
+          //count the number of elements above a threshold
+          template<typename V1>
+          double countofvector(const V1& v1, double threshold, bool dir)
+          {
+              typename V1::const_iterator it1 = v1.begin();
+              double res = 0.0f;
+              while (it1 != v1.end())
+              {
+                  if(dir && (double)*it1 > threshold)
+                      res+=1.0f;
+
+                  if(!dir && (double)*it1 < -threshold)
+                      res+=1.0f;
+
+                  ++it1;
+              }
+              return res / (double) v1.size() ;
+          }
+        };
+
+        ////////////////////////////////////////////////////////////////////////
+
         struct PositionTraj : public DescriptorBase {
         public:
             PositionTraj() {}
