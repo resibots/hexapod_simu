@@ -69,7 +69,7 @@ namespace hexapod_dart {
                                                                           _desc_period(2),
                                                                           _break(false)
         {
-            _world->getConstraintSolver()->setCollisionDetector(new dart::collision::DARTCollisionDetector());
+            _world->getConstraintSolver()->setCollisionDetector(std::unique_ptr<dart::collision::DARTCollisionDetector>(new dart::collision::DARTCollisionDetector()));
             _robot = robot;
             // set position of hexapod
             _robot->skeleton()->setPosition(5, 0.2);
@@ -303,12 +303,9 @@ namespace hexapod_dart {
             // Give the body a shape
             double floor_width = 10.0;
             double floor_height = 0.1;
-            std::shared_ptr<dart::dynamics::BoxShape> box(
-                new dart::dynamics::BoxShape(Eigen::Vector3d(floor_width, floor_width, floor_height)));
-            box->setColor(dart::Color::Gray());
-
-            body->addVisualizationShape(box);
-            body->addCollisionShape(box);
+            auto box = std::make_shared<dart::dynamics::BoxShape>(Eigen::Vector3d(floor_width, floor_width, floor_height));
+            auto box_node = body->createShapeNodeWith<dart::dynamics::VisualAddon, dart::dynamics::CollisionAddon, dart::dynamics::DynamicsAddon>(box);
+            box_node->getVisualAddon()->setColor(dart::Color::Gray());
 
             // Put the body into position
             Eigen::Isometry3d tf(Eigen::Isometry3d::Identity());

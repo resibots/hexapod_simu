@@ -117,8 +117,7 @@ namespace hexapod_dart {
 
             for (size_t i = 0; i < to_remove.size(); i++) {
                 auto tmp = _skeleton->getJoint(to_remove[i] - i * 3)->getChildBodyNode();
-                tmp->removeAllCollisionShapes();
-                tmp->removeAllVisualizationShapes();
+                tmp->removeAllShapeNodes();
                 tmp->remove();
             }
         }
