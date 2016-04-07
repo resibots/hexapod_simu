@@ -213,12 +213,12 @@ namespace hexapod_dart {
             return _arrival_angle;
         }
 
-        Eigen::Vector3d final_pos() const
+        const Eigen::Vector3d& final_pos() const
         {
             return _final_pos;
         }
 
-        Eigen::Vector3d final_rot() const
+        const Eigen::Vector3d& final_rot() const
         {
             return _final_rot;
         }
