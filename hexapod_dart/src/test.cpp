@@ -1,11 +1,12 @@
 #include <iostream>
+#include <cstdlib>
 #include <hexapod_dart/hexapod_dart_simu.hpp>
 
 int main()
 {
     std::vector<int> brk = {};
 
-    auto global_robot = std::make_shared<hexapod_dart::Hexapod>("/home/kchatzil/Workspaces/ResiBots/source/sferes2/pexod.urdf", brk);
+    auto global_robot = std::make_shared<hexapod_dart::Hexapod>(std::string(std::getenv("RESIBOTS_DIR")) + "/share/hexapod_models/URDF/pexod.urdf", brk);
 
     std::vector<double> ctrl;
     ctrl = {1, 0, 0.5, 0.25, 0.25, 0.5, 1, 0.5, 0.5, 0.25, 0.75, 0.5, 1, 0, 0.5, 0.25, 0.25, 0.5, 1, 0, 0.5, 0.25, 0.75, 0.5, 1, 0.5, 0.5, 0.25, 0.25, 0.5, 1, 0, 0.5, 0.25, 0.75, 0.5};

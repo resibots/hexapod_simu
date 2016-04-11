@@ -35,7 +35,7 @@ namespace hexapod_dart {
             _controller.set_parameters(ctrl);
         }
 
-        std::vector<double> parameters()
+        std::vector<double> parameters() const
         {
             return _controller.parameters();
         }
@@ -49,7 +49,7 @@ namespace hexapod_dart {
         {
             auto angles = _controller.pos(t);
             for (size_t i = 0; i < angles.size(); i++)
-                _target_positions(i + 6) = angles[i];
+                _target_positions(i + 6) = ((i % 3 == 1) ? 1.0 : -1.0) * angles[i];
 
             set_commands();
         }

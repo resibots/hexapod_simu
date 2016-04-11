@@ -31,15 +31,15 @@ namespace hexapod_dart {
 
     template <typename Simu, typename robot>
     struct Refresh {
-        Refresh(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector3d& init_pos, const Eigen::Vector3d& init_rot)
-            : _simu(simu), _robot(rob), _init_pos(init_pos), _init_rot(init_rot) {}
+        Refresh(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector6d& init_trans)
+            : _simu(simu), _robot(rob), _init_trans(init_trans) {}
 
         Simu& _simu;
         std::shared_ptr<robot> _robot;
-        Eigen::Vector3d _init_pos, _init_rot;
+        Eigen::Vector6d _init_trans;
 
         template <typename T>
-        void operator()(T& x) const { x(_simu, _robot, _init_pos, _init_rot); }
+        void operator()(T& x) const { x(_simu, _robot, _init_trans); }
     };
 
     template <class A1 = boost::parameter::void_, class A2 = boost::parameter::void_, class A3 = boost::parameter::void_>
@@ -69,11 +69,10 @@ namespace hexapod_dart {
                                                                           _desc_period(2),
                                                                           _break(false)
         {
-            _world->getConstraintSolver()->setCollisionDetector(new dart::collision::DARTCollisionDetector());
+            _world->getConstraintSolver()->setCollisionDetector(std::unique_ptr<dart::collision::DARTCollisionDetector>(new dart::collision::DARTCollisionDetector()));
             _robot = robot;
             // set position of hexapod
             _robot->skeleton()->setPosition(5, 0.2);
-            _robot->skeleton()->setPosition(2, DART_PI);
             _add_floor();
             _world->addSkeleton(_robot->skeleton());
             _world->setTimeStep(0.015);
@@ -104,8 +103,7 @@ namespace hexapod_dart {
             size_t index = _old_index;
 
             // TO-DO: maybe wee need better solution for this/reset them?
-            static Eigen::Vector3d init_pos = rob->pos();
-            static Eigen::Vector3d init_rot = rob->rot();
+            static Eigen::Vector6d init_trans = rob->pose();
             static Eigen::VectorXd torques(rob->skeleton()->getNumDofs());
 
 #ifdef GRAPHIC
@@ -123,7 +121,7 @@ namespace hexapod_dart {
                 torques = torques + state;
 
                 // update safety measures
-                boost::fusion::for_each(_safety_measures, Refresh<HexapodDARTSimu, Hexapod>(*this, rob, init_pos, init_rot));
+                boost::fusion::for_each(_safety_measures, Refresh<HexapodDARTSimu, Hexapod>(*this, rob, init_trans));
 
                 if (_break) {
                     _covered_distance = -10002.0;
@@ -144,7 +142,7 @@ namespace hexapod_dart {
 
                 if (index % _desc_period == 0) {
                     // update descriptors
-                    boost::fusion::for_each(_descriptors, Refresh<HexapodDARTSimu, Hexapod>(*this, rob, init_pos, init_rot));
+                    boost::fusion::for_each(_descriptors, Refresh<HexapodDARTSimu, Hexapod>(*this, rob, init_trans));
                 }
 
                 ++index;
@@ -161,16 +159,26 @@ namespace hexapod_dart {
                 }
             }
 
-            Eigen::Vector3d stab_pos = rob->pos();
-            Eigen::Vector3d stab_rot = rob->rot();
+            // Position computation
+            Eigen::Vector6d pose = rob->pose();
+            Eigen::Matrix3d rot = dart::math::expMapRot({pose[0], pose[1], pose[2]});
+            Eigen::Matrix3d init_rot = dart::math::expMapRot({init_trans[0], init_trans[1], init_trans[2]});
+            Eigen::MatrixXd init_homogeneous(4, 4);
+            init_homogeneous << init_rot(0, 0), init_rot(0, 1), init_rot(0, 2), init_trans[3], init_rot(1, 0), init_rot(1, 1), init_rot(1, 2), init_trans[4], init_rot(2, 0), init_rot(2, 1), init_rot(2, 2), init_trans[5], 0, 0, 0, 1;
+            Eigen::MatrixXd final_homogeneous(4, 4);
+            final_homogeneous << rot(0, 0), rot(0, 1), rot(0, 2), pose[3], rot(1, 0), rot(1, 1), rot(1, 2), pose[4], rot(2, 0), rot(2, 1), rot(2, 2), pose[5], 0, 0, 0, 1;
+            Eigen::Vector4d pos = {init_trans[3], init_trans[4], init_trans[5], 1.0};
+            pos = init_homogeneous.inverse() * final_homogeneous * pos;
 
-            _final_pos = stab_pos - init_pos;
-            _final_rot = stab_rot - init_rot;
+            _final_pos = Eigen::Vector3d(pos(0), pos(1), pos(2));
 
             _covered_distance = std::round(_final_pos(0) * 100) / 100.0;
 
+            // Angle computation
+            _final_rot = dart::math::matrixToEulerXYZ(init_rot.inverse() * rot);
+
             // roll-pitch-yaw
-            _arrival_angle = std::round(dart::math::matrixToEulerXYZ(dart::math::expMapRot(_final_rot))(2) * 100) / 100.0;
+            _arrival_angle = std::round(_final_rot(2) * 100) / 100.0;
         }
 
         robot_t robot()
@@ -190,32 +198,32 @@ namespace hexapod_dart {
             (*d).get(result);
         }
 
-        double covered_distance()
+        double covered_distance() const
         {
             return _covered_distance;
         }
 
-        double energy()
+        double energy() const
         {
             return _energy;
         }
 
-        double arrival_angle()
+        double arrival_angle() const
         {
             return _arrival_angle;
         }
 
-        Eigen::Vector3d final_pos()
+        const Eigen::Vector3d& final_pos() const
         {
             return _final_pos;
         }
 
-        Eigen::Vector3d final_rot()
+        const Eigen::Vector3d& final_rot() const
         {
             return _final_rot;
         }
 
-        double step()
+        double step() const
         {
             assert(_world != nullptr);
             return _world->getTimeStep();
@@ -227,7 +235,7 @@ namespace hexapod_dart {
             _world->setTimeStep(step);
         }
 
-        size_t desc_dump()
+        size_t desc_dump() const
         {
             return _desc_period;
         }
@@ -295,12 +303,9 @@ namespace hexapod_dart {
             // Give the body a shape
             double floor_width = 10.0;
             double floor_height = 0.1;
-            std::shared_ptr<dart::dynamics::BoxShape> box(
-                new dart::dynamics::BoxShape(Eigen::Vector3d(floor_width, floor_width, floor_height)));
-            box->setColor(dart::Color::Gray());
-
-            body->addVisualizationShape(box);
-            body->addCollisionShape(box);
+            auto box = std::make_shared<dart::dynamics::BoxShape>(Eigen::Vector3d(floor_width, floor_width, floor_height));
+            auto box_node = body->createShapeNodeWith<dart::dynamics::VisualAddon, dart::dynamics::CollisionAddon, dart::dynamics::DynamicsAddon>(box);
+            box_node->getVisualAddon()->setColor(dart::Color::Gray());
 
             // Put the body into position
             Eigen::Isometry3d tf(Eigen::Isometry3d::Identity());
