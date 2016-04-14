@@ -16,7 +16,7 @@
 #include <hexapod_dart/descriptors.hpp>
 
 #ifdef GRAPHIC
-#include <osgDart/osgDart.h>
+#include <dart/gui/osg/osg.h>
 #endif
 
 namespace hexapod_dart {
@@ -69,7 +69,7 @@ namespace hexapod_dart {
                                                                           _desc_period(2),
                                                                           _break(false)
         {
-            _world->getConstraintSolver()->setCollisionDetector(std::unique_ptr<dart::collision::DARTCollisionDetector>(new dart::collision::DARTCollisionDetector()));
+            _world->getConstraintSolver()->setCollisionDetector(dart::collision::DARTCollisionDetector::create());
             _robot = robot;
             // set position of hexapod
             _robot->skeleton()->setPosition(5, 0.2);
@@ -84,7 +84,7 @@ namespace hexapod_dart {
             _controller.set_parameters(ctrl);
 
 #ifdef GRAPHIC
-            _osg_world_node = new osgDart::WorldNode(_world);
+            _osg_world_node = new dart::gui::osg::WorldNode(_world);
             _osg_world_node->simulate(true);
             _osg_viewer.addWorldNode(_osg_world_node);
             _osg_viewer.setUpViewInWindow(0, 0, 640, 480);
@@ -329,8 +329,8 @@ namespace hexapod_dart {
         safety_measures_t _safety_measures;
         descriptors_t _descriptors;
 #ifdef GRAPHIC
-        osg::ref_ptr<osgDart::WorldNode> _osg_world_node;
-        osgDart::Viewer _osg_viewer;
+        osg::ref_ptr<dart::gui::osg::WorldNode> _osg_world_node;
+        dart::gui::osg::Viewer _osg_viewer;
 #endif
     };
 }

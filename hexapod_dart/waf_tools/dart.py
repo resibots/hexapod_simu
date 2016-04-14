@@ -57,11 +57,21 @@ def check_dart(conf):
 	except:
 		osg_found = False
 
+	extra_libs = []
+
 	try:
-		conf.start_msg('Checking for DART includes')
+		conf.start_msg('Checking for DART includes (including utils/urdf)')
 		res = conf.find_file('dart/dart.h', includes_check)
-		res = res and conf.find_file('dart/dart-core.h', includes_check)
+		res = res and conf.find_file('dart/utils/utils.h', includes_check)
+		res = res and conf.find_file('dart/utils/urdf/urdf.h', includes_check)
 		conf.end_msg('ok')
+		try:
+			conf.start_msg('Checking for DART gui includes')
+			res = res and conf.find_file('dart/gui/gui.h', includes_check)
+			res = res and conf.find_file('dart/gui/osg/osg.h', includes_check)
+			conf.end_msg('ok')
+		except:
+			conf.end_msg('Not found', 'RED')
 		conf.start_msg('DART: Checking for optional Bullet includes')
 		more_includes = []
 		if bullet_found:
@@ -71,13 +81,23 @@ def check_dart(conf):
 			conf.end_msg('Not found - be sure that your DART installation is without Bullet enabled', 'RED')
 		if assimp_found:
 			more_includes += assimp_check
-		conf.start_msg('Checking for DART libs')
+		conf.start_msg('Checking for DART libs (including utils/urdf)')
 		res = res and conf.find_file('libdart.so', libs_check)
-		res = res and conf.find_file('libdart-core.so', libs_check)
+		res = res and conf.find_file('libdart-utils.so', libs_check)
+		res = res and conf.find_file('libdart-utils-urdf.so', libs_check)
 		conf.end_msg('ok')
+		try:
+			conf.start_msg('Checking for DART gui libs')
+			res = res and conf.find_file('libdart-gui.so', libs_check)
+			res = res and conf.find_file('libdart-gui-osg.so', libs_check)
+			conf.end_msg('ok')
+			extra_libs.append('dart-gui')
+			extra_libs.append('dart-gui-osg')
+		except:
+			conf.end_msg('Not found', 'RED')
 		conf.env.INCLUDES_DART = includes_check + more_includes
 		conf.env.LIBPATH_DART = libs_check
-		conf.env.LIB_DART = ['dart', 'dart-core']
+		conf.env.LIB_DART = ['dart', 'dart-utils', 'dart-utils-urdf'] + extra_libs
 		conf.start_msg('DART: Checking for Assimp')
 		if assimp_found:
 			conf.end_msg('ok')
@@ -88,15 +108,9 @@ def check_dart(conf):
 		if bullet_found:
 			conf.env.LIB_DART.append('BulletCollision')
 			conf.env.LIB_DART.append('LinearMath')
-		conf.start_msg('Checking for DART OSG includes (optional)')
-		res = res and conf.find_file('osgDart/osgDart.h', includes_check)
-		conf.end_msg('ok')
-		conf.start_msg('Checking for DART OSG libs (optional)')
-		res = res and conf.find_file('libosgDart.so', libs_check)
-		conf.end_msg('ok')
 		conf.env.INCLUDES_DART_GRAPHIC = conf.env.INCLUDES_DART
 		conf.env.LIBPATH_DART_GRAPHIC = conf.env.LIBPATH_DART
-		conf.env.LIB_DART_GRAPHIC = conf.env.LIB_DART + ['osgDart']
+		conf.env.LIB_DART_GRAPHIC = conf.env.LIB_DART
 		conf.start_msg('DART: Checking for OSG (optional)')
 		if osg_found:
 			conf.env.INCLUDES_DART_GRAPHIC += osg_check
