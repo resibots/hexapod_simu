@@ -41,6 +41,7 @@ namespace hexapod_dart {
             template <typename Simu, typename robot>
             void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector6d& init_trans)
             {
+                const dart::collision::CollisionResult& col_res = simu.world()->getLastCollisionResult();
                 for (size_t i = 0; i < 6; ++i) {
                     std::string leg_name = "leg_" + std::to_string(i) + "_3";
                     dart::dynamics::BodyNodePtr body_to_check;
@@ -54,7 +55,7 @@ namespace hexapod_dart {
                         _contacts[i].push_back(0);
                     }
                     else {
-                        _contacts[i].push_back(body_to_check->isColliding());
+                        _contacts[i].push_back(col_res.inCollision(body_to_check));
                     }
                 }
             }

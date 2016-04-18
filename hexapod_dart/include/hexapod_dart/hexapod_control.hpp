@@ -62,7 +62,7 @@ namespace hexapod_dart {
             Eigen::VectorXd q = _robot->skeleton()->getPositions();
             Eigen::VectorXd q_err = _target_positions - q;
 
-            double gain = 1.0 / (DART_PI * _robot->skeleton()->getTimeStep());
+            double gain = 1.0 / (dart::math::constants<double>::pi() * _robot->skeleton()->getTimeStep());
             Eigen::VectorXd vel = q_err * gain;
             vel = vel.cwiseProduct(_p);
 
