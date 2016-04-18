@@ -57,8 +57,6 @@ def check_dart(conf):
 	except:
 		osg_found = False
 
-	extra_libs = []
-
 	try:
 		conf.start_msg('Checking for DART includes (including utils/urdf)')
 		res = conf.find_file('dart/dart.h', includes_check)
@@ -86,18 +84,9 @@ def check_dart(conf):
 		res = res and conf.find_file('libdart-utils.so', libs_check)
 		res = res and conf.find_file('libdart-utils-urdf.so', libs_check)
 		conf.end_msg('ok')
-		try:
-			conf.start_msg('Checking for DART gui libs')
-			res = res and conf.find_file('libdart-gui.so', libs_check)
-			res = res and conf.find_file('libdart-gui-osg.so', libs_check)
-			conf.end_msg('ok')
-			extra_libs.append('dart-gui')
-			extra_libs.append('dart-gui-osg')
-		except:
-			conf.end_msg('Not found', 'RED')
 		conf.env.INCLUDES_DART = includes_check + more_includes
 		conf.env.LIBPATH_DART = libs_check
-		conf.env.LIB_DART = ['dart', 'dart-utils', 'dart-utils-urdf'] + extra_libs
+		conf.env.LIB_DART = ['dart', 'dart-utils', 'dart-utils-urdf']
 		conf.start_msg('DART: Checking for Assimp')
 		if assimp_found:
 			conf.end_msg('ok')
@@ -108,18 +97,25 @@ def check_dart(conf):
 		if bullet_found:
 			conf.env.LIB_DART.append('BulletCollision')
 			conf.env.LIB_DART.append('LinearMath')
-		conf.env.INCLUDES_DART_GRAPHIC = conf.env.INCLUDES_DART
-		conf.env.LIBPATH_DART_GRAPHIC = conf.env.LIBPATH_DART
-		conf.env.LIB_DART_GRAPHIC = conf.env.LIB_DART
-		conf.start_msg('DART: Checking for OSG (optional)')
-		if osg_found:
-			conf.env.INCLUDES_DART_GRAPHIC += osg_check
-			conf.env.LIBPATH_DART_GRAPHIC += osg_libs
-			conf.env.LIB_DART_GRAPHIC += osg_comp
+		try:
+			conf.start_msg('Checking for DART gui libs')
+			res = res and conf.find_file('libdart-gui.so', libs_check)
+			res = res and conf.find_file('libdart-gui-osg.so', libs_check)
 			conf.end_msg('ok')
-		else:
-			conf.end_msg('Not found - Your graphical programs may not compile', 'RED')
-		conf.get_env()['BUILD_GRAPHIC'] = True
+			conf.env.INCLUDES_DART_GRAPHIC = conf.env.INCLUDES_DART
+			conf.env.LIBPATH_DART_GRAPHIC = conf.env.LIBPATH_DART
+			conf.env.LIB_DART_GRAPHIC = conf.env.LIB_DART + ['dart-gui', 'dart-gui-osg']
+			conf.start_msg('DART: Checking for OSG (optional)')
+			if osg_found:
+				conf.env.INCLUDES_DART_GRAPHIC += osg_check
+				conf.env.LIBPATH_DART_GRAPHIC += osg_libs
+				conf.env.LIB_DART_GRAPHIC += osg_comp
+				conf.end_msg('ok')
+			else:
+				conf.end_msg('Not found - Your graphical programs may not compile/link', 'RED')
+			conf.get_env()['BUILD_GRAPHIC'] = True
+		except:
+			conf.end_msg('Not found', 'RED')
 	except:
 		conf.end_msg('Not found', 'RED')
 		return
