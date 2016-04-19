@@ -43,6 +43,7 @@ namespace hexapod_dart {
             template <typename Simu, typename robot>
             void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector6d& init_trans)
             {
+                const dart::collision::CollisionResult& col_res = simu.world()->getLastCollisionResult();
                 for (size_t i = 0; i < 6; ++i) {
                     std::string leg_name = "leg_" + std::to_string(i) + "_3";
                     dart::dynamics::BodyNodePtr body_to_check;
@@ -56,7 +57,7 @@ namespace hexapod_dart {
                         _contacts[i].push_back(0);
                     }
                     else {
-                        _contacts[i].push_back(body_to_check->isColliding());
+                        _contacts[i].push_back(col_res.inCollision(body_to_check));
                     }
                 }
             }
@@ -137,16 +138,16 @@ namespace hexapod_dart {
             void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector6d& init_trans)
             {
                 Eigen::Vector6d pose = rob->pose();
-                Eigen::Matrix3d rr = dart::math::expMapRot({pose[0], pose[1], pose[2]});
-                Eigen::Matrix3d ro = dart::math::expMapRot({init_trans[0], init_trans[1], init_trans[2]});
-                Eigen::MatrixXd init(4, 4);
-                init << ro(0, 0), ro(0, 1), ro(0, 2), init_trans[3], ro(1, 0), ro(1, 1), ro(1, 2), init_trans[4], ro(2, 0), ro(2, 1), ro(2, 2), init_trans[5], 0, 0, 0, 1;
-                Eigen::MatrixXd pp(4, 4);
-                pp << rr(0, 0), rr(0, 1), rr(0, 2), pose[3], rr(1, 0), rr(1, 1), rr(1, 2), pose[4], rr(2, 0), rr(2, 1), rr(2, 2), pose[5], 0, 0, 0, 1;
-                Eigen::Vector4d p = {init_trans[3], init_trans[4], init_trans[5], 1.0};
-                p = init.inverse() * pp * p;
+                Eigen::Matrix3d rot = dart::math::expMapRot({pose[0], pose[1], pose[2]});
+                Eigen::Matrix3d init_rot = dart::math::expMapRot({init_trans[0], init_trans[1], init_trans[2]});
+                Eigen::MatrixXd init_homogeneous(4, 4);
+                init_homogeneous << init_rot(0, 0), init_rot(0, 1), init_rot(0, 2), init_trans[3], init_rot(1, 0), init_rot(1, 1), init_rot(1, 2), init_trans[4], init_rot(2, 0), init_rot(2, 1), init_rot(2, 2), init_trans[5], 0, 0, 0, 1;
+                Eigen::MatrixXd final_homogeneous(4, 4);
+                final_homogeneous << rot(0, 0), rot(0, 1), rot(0, 2), pose[3], rot(1, 0), rot(1, 1), rot(1, 2), pose[4], rot(2, 0), rot(2, 1), rot(2, 2), pose[5], 0, 0, 0, 1;
+                Eigen::Vector4d pos = {init_trans[3], init_trans[4], init_trans[5], 1.0};
+                pos = init_homogeneous.inverse() * final_homogeneous * pos;
 
-                _pos_traj.push_back({p[0], p[1], p[2]});
+                _pos_traj.push_back({pos[0], pos[1], pos[2]});
             }
 
             void get(std::vector<Eigen::Vector3d>& results)
@@ -206,9 +207,9 @@ namespace hexapod_dart {
             void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector6d& init_trans)
             {
                 // roll-pitch-yaw
-                Eigen::Matrix3d rr = dart::math::expMapRot(rob->rot());
-                Eigen::Matrix3d ro = dart::math::expMapRot({init_trans[0], init_trans[1], init_trans[2]});
-                auto rpy = dart::math::matrixToEulerXYZ(ro.inverse() * rr);
+                Eigen::Matrix3d rot = dart::math::expMapRot(rob->rot());
+                Eigen::Matrix3d init_rot = dart::math::expMapRot({init_trans[0], init_trans[1], init_trans[2]});
+                auto rpy = dart::math::matrixToEulerXYZ(init_rot.inverse() * rot);
 
                 _rotation_traj.push_back(rpy);
             }

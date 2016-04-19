@@ -16,7 +16,7 @@
 #include <hexapod_dart/descriptors.hpp>
 
 #ifdef GRAPHIC
-#include <osgDart/osgDart.h>
+#include <dart/gui/osg/osg.h>
 #endif
 
 namespace hexapod_dart {
@@ -69,7 +69,7 @@ namespace hexapod_dart {
                                                                           _desc_period(2),
                                                                           _break(false)
         {
-            _world->getConstraintSolver()->setCollisionDetector(std::unique_ptr<dart::collision::DARTCollisionDetector>(new dart::collision::DARTCollisionDetector()));
+            _world->getConstraintSolver()->setCollisionDetector(dart::collision::DARTCollisionDetector::create());
             _robot = robot;
             // set position of hexapod
             _robot->skeleton()->setPosition(5, 0.2);
@@ -84,7 +84,7 @@ namespace hexapod_dart {
             _controller.set_parameters(ctrl);
 
 #ifdef GRAPHIC
-            _osg_world_node = new osgDart::WorldNode(_world);
+            _osg_world_node = new dart::gui::osg::WorldNode(_world);
             _osg_world_node->simulate(true);
             _osg_viewer.addWorldNode(_osg_world_node);
             _osg_viewer.setUpViewInWindow(0, 0, 640, 480);
@@ -161,21 +161,21 @@ namespace hexapod_dart {
 
             // Position computation
             Eigen::Vector6d pose = rob->pose();
-            Eigen::Matrix3d rr = dart::math::expMapRot({pose[0], pose[1], pose[2]});
-            Eigen::Matrix3d ro = dart::math::expMapRot({init_trans[0], init_trans[1], init_trans[2]});
-            Eigen::MatrixXd init(4, 4);
-            init << ro(0, 0), ro(0, 1), ro(0, 2), init_trans[3], ro(1, 0), ro(1, 1), ro(1, 2), init_trans[4], ro(2, 0), ro(2, 1), ro(2, 2), init_trans[5], 0, 0, 0, 1;
-            Eigen::MatrixXd pp(4, 4);
-            pp << rr(0, 0), rr(0, 1), rr(0, 2), pose[3], rr(1, 0), rr(1, 1), rr(1, 2), pose[4], rr(2, 0), rr(2, 1), rr(2, 2), pose[5], 0, 0, 0, 1;
-            Eigen::Vector4d p = {init_trans[3], init_trans[4], init_trans[5], 1.0};
-            p = init.inverse() * pp * p;
+            Eigen::Matrix3d rot = dart::math::expMapRot({pose[0], pose[1], pose[2]});
+            Eigen::Matrix3d init_rot = dart::math::expMapRot({init_trans[0], init_trans[1], init_trans[2]});
+            Eigen::MatrixXd init_homogeneous(4, 4);
+            init_homogeneous << init_rot(0, 0), init_rot(0, 1), init_rot(0, 2), init_trans[3], init_rot(1, 0), init_rot(1, 1), init_rot(1, 2), init_trans[4], init_rot(2, 0), init_rot(2, 1), init_rot(2, 2), init_trans[5], 0, 0, 0, 1;
+            Eigen::MatrixXd final_homogeneous(4, 4);
+            final_homogeneous << rot(0, 0), rot(0, 1), rot(0, 2), pose[3], rot(1, 0), rot(1, 1), rot(1, 2), pose[4], rot(2, 0), rot(2, 1), rot(2, 2), pose[5], 0, 0, 0, 1;
+            Eigen::Vector4d pos = {init_trans[3], init_trans[4], init_trans[5], 1.0};
+            pos = init_homogeneous.inverse() * final_homogeneous * pos;
 
-            _final_pos = Eigen::Vector3d(p(0), p(1), p(2));
+            _final_pos = Eigen::Vector3d(pos(0), pos(1), pos(2));
 
             _covered_distance = std::round(_final_pos(0) * 100) / 100.0;
 
             // Angle computation
-            _final_rot = dart::math::matrixToEulerXYZ(ro.inverse() * rr);
+            _final_rot = dart::math::matrixToEulerXYZ(init_rot.inverse() * rot);
 
             // roll-pitch-yaw
             _arrival_angle = std::round(_final_rot(2) * 100) / 100.0;
@@ -198,32 +198,32 @@ namespace hexapod_dart {
             (*d).get(result);
         }
 
-        double covered_distance()
+        double covered_distance() const
         {
             return _covered_distance;
         }
 
-        double energy()
+        double energy() const
         {
             return _energy;
         }
 
-        double arrival_angle()
+        double arrival_angle() const
         {
             return _arrival_angle;
         }
 
-        Eigen::Vector3d final_pos()
+        const Eigen::Vector3d& final_pos() const
         {
             return _final_pos;
         }
 
-        Eigen::Vector3d final_rot()
+        const Eigen::Vector3d& final_rot() const
         {
             return _final_rot;
         }
 
-        double step()
+        double step() const
         {
             assert(_world != nullptr);
             return _world->getTimeStep();
@@ -235,7 +235,7 @@ namespace hexapod_dart {
             _world->setTimeStep(step);
         }
 
-        size_t desc_dump()
+        size_t desc_dump() const
         {
             return _desc_period;
         }
@@ -329,8 +329,8 @@ namespace hexapod_dart {
         safety_measures_t _safety_measures;
         descriptors_t _descriptors;
 #ifdef GRAPHIC
-        osg::ref_ptr<osgDart::WorldNode> _osg_world_node;
-        osgDart::Viewer _osg_viewer;
+        osg::ref_ptr<dart::gui::osg::WorldNode> _osg_world_node;
+        dart::gui::osg::Viewer _osg_viewer;
 #endif
     };
 }

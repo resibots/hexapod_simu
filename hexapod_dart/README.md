@@ -93,34 +93,25 @@ def check_hexapod_dart(conf):
     # You can customize where you want to check
     # e.g. here we search also in a folder defined by an environmental variable
     if 'RESIBOTS_DIR' in os.environ:
-      includes_check = [os.environ['RESIBOTS_DIR'] + '/include'] + includes_check
-      libs_check = [os.environ['RESIBOTS_DIR'] + '/lib'] + libs_check
+    	includes_check = [os.environ['RESIBOTS_DIR'] + '/include'] + includes_check
+    	libs_check = [os.environ['RESIBOTS_DIR'] + '/lib'] + libs_check
 
     if conf.options.hexapod_dart:
-      includes_check = [conf.options.hexapod_dart + '/include']
-      libs_check = [conf.options.hexapod_dart + '/lib']
+    	includes_check = [conf.options.hexapod_dart + '/include']
+    	libs_check = [conf.options.hexapod_dart + '/lib']
 
     try:
-      conf.start_msg('Checking for hexapod_dart includes')
-      res = conf.find_file('hexapod_dart/hexapod.hpp', includes_check)
-      res = res and conf.find_file('hexapod_dart/hexapod_control.hpp', includes_check)
-      res = res and conf.find_file('hexapod_dart/hexapod_dart_simu.hpp', includes_check)
-      conf.end_msg('ok')
-      conf.start_msg('Checking for hexapod_dart libs')
-      res = res and conf.find_file('libhexapod_dart.a', libs_check)
-      conf.end_msg('ok')
-      conf.env.INCLUDES_HEXAPOD_DART = includes_check
-      conf.env.STLIBPATH_HEXAPOD_DART = libs_check
-      conf.env.STLIB_HEXAPOD_DART = ['hexapod_dart']
-      conf.start_msg('Checking for hexapod_dart graphics libs')
-      res = res and conf.find_file('libhexapod_dart_graphic.a', libs_check)
-      conf.end_msg('ok')
-      conf.env.INCLUDES_HEXAPOD_DART_GRAPHIC = conf.env.INCLUDES_HEXAPOD_DART
-      conf.env.STLIBPATH_HEXAPOD_DART_GRAPHIC = conf.env.STLIBPATH_HEXAPOD_DART
-      conf.env.STLIB_HEXAPOD_DART_GRAPHIC = ['hexapod_dart_graphic']
+    	conf.start_msg('Checking for hexapod_dart includes')
+    	res = conf.find_file('hexapod_dart/hexapod.hpp', includes_check)
+    	res = res and conf.find_file('hexapod_dart/hexapod_control.hpp', includes_check)
+    	res = res and conf.find_file('hexapod_dart/hexapod_dart_simu.hpp', includes_check)
+    	res = res and conf.find_file('hexapod_dart/descriptors.hpp', includes_check)
+    	res = res and conf.find_file('hexapod_dart/safety_measures.hpp', includes_check)
+    	conf.end_msg('ok')
+    	conf.env.INCLUDES_HEXAPOD_DART = includes_check
     except:
-      conf.end_msg('Not found', 'RED')
-      return
+    	conf.end_msg('Not found', 'RED')
+    	return
     return 1
 ```
 

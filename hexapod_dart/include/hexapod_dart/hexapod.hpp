@@ -2,6 +2,7 @@
 #define HEXAPOD_DART_HEXAPOD_HPP
 
 #include <dart/dart.h>
+#include <dart/utils/urdf/urdf.h>
 #include <Eigen/Core>
 #include <string>
 #include <fstream>
@@ -58,18 +59,21 @@ namespace hexapod_dart {
 
         Eigen::Vector3d pos()
         {
+            // DART's getPositions returns: COM orientation, COM position, joint positions
             auto pos_and_rot = _skeleton->getPositions();
             return {pos_and_rot(3), pos_and_rot(4), pos_and_rot(5)};
         }
 
         Eigen::Vector3d rot()
         {
+            // DART's getPositions returns: COM orientation, COM position, joint positions
             auto pos_and_rot = _skeleton->getPositions();
             return {pos_and_rot(0), pos_and_rot(1), pos_and_rot(2)};
         }
 
         Eigen::Vector6d pose()
         {
+            // DART's getPositions returns: COM orientation, COM position, joint positions
             auto pos_and_rot = _skeleton->getPositions();
             Eigen::Vector6d tmp;
             tmp << pos_and_rot(0), pos_and_rot(1), pos_and_rot(2), pos_and_rot(3), pos_and_rot(4), pos_and_rot(5);

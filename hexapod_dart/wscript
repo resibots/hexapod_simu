@@ -62,13 +62,15 @@ def build(bld):
 
     if bld.get_env()['BUILD_GRAPHIC'] == True:
         bld.program(features = 'cxx',
+                      install_path = None,
                       source = 'src/test.cpp',
                       includes = './include',
-                      uselib = 'BOOST BOOST_SYSTEM BOOST_REGEX DART EIGEN HEXAPOD_CONTROLLER DART_GRAPHIC',
-                      cxxflags = ['-DGRAPHIC'],
+                      uselib = 'BOOST BOOST_SYSTEM BOOST_REGEX EIGEN HEXAPOD_CONTROLLER DART_GRAPHIC',
+                      defines = ['GRAPHIC'],
                       target = 'test')
 
     bld.program(features = 'cxx',
+                  install_path = None,
                   source = 'src/test.cpp',
                   includes = './include',
                   uselib = 'BOOST BOOST_SYSTEM BOOST_REGEX DART EIGEN HEXAPOD_CONTROLLER',
