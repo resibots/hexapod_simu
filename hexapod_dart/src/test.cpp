@@ -4,6 +4,8 @@
 
 int main()
 {
+    // hide errors/warnings from DART
+    std::cerr.setstate(std::ios_base::failbit);
     std::vector<int> brk = {};
 
     auto global_robot = std::make_shared<hexapod_dart::Hexapod>(std::string(std::getenv("RESIBOTS_DIR")) + "/share/hexapod_models/URDF/pexod.urdf", brk);
