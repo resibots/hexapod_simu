@@ -10,8 +10,9 @@ namespace hexapod_dart {
             template <typename Simu, typename robot>
             void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector6d& init_trans)
             {
+                const dart::collision::CollisionResult& col_res = simu.world()->getLastCollisionResult();
                 auto body = rob->skeleton()->getRootBodyNode();
-                if (body->isColliding())
+                if (col_res.inCollision(body))
                     simu.stop_sim();
             }
         };
