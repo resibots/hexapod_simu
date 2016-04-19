@@ -32,10 +32,10 @@ int main()
         std::cout << v[i] << " ";
     }
     std::cout << std::endl;
-    std::vector<double> vv;
+    std::vector<Eigen::Vector3d> vv;
     simu.get_descriptor<hexapod_dart::descriptors::RotationTraj>(vv);
     for (size_t i = 0; i < vv.size(); i++) {
-        std::cout << vv[i] << " ";
+        std::cout << vv[i][0] << " " << vv[i][1] << vv[i][2] << " ";
     }
     std::cout << std::endl;
 

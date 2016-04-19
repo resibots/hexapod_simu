@@ -95,12 +95,12 @@ namespace hexapod_dart {
           void get(std::vector<double>& results)
           {
               results.clear();
-              results.push_back(countofvector(_pitch_vec , (_perc_threshold / 100.0) * DART_PI, true));
-              results.push_back(countofvector(_pitch_vec , (_perc_threshold / 100.0) * DART_PI, false));
-              results.push_back(countofvector(_roll_vec , (_perc_threshold / 100.0) * DART_PI, true));
-              results.push_back(countofvector(_roll_vec , (_perc_threshold / 100.0) * DART_PI, false));
-              results.push_back(countofvector(_yaw_vec , (_perc_threshold / 100.0) * DART_PI, true));
-              results.push_back(countofvector(_yaw_vec , (_perc_threshold / 100.0) * DART_PI, false));
+              results.push_back(countofvector(_pitch_vec , (_perc_threshold / 100.0) * dart::math::constants<double>::pi(), true));
+              results.push_back(countofvector(_pitch_vec , (_perc_threshold / 100.0) * dart::math::constants<double>::pi(), false));
+              results.push_back(countofvector(_roll_vec , (_perc_threshold / 100.0) * dart::math::constants<double>::pi(), true));
+              results.push_back(countofvector(_roll_vec , (_perc_threshold / 100.0) * dart::math::constants<double>::pi(), false));
+              results.push_back(countofvector(_yaw_vec , (_perc_threshold / 100.0) * dart::math::constants<double>::pi(), true));
+              results.push_back(countofvector(_yaw_vec , (_perc_threshold / 100.0) * dart::math::constants<double>::pi(), false));
           }
 
       protected:
