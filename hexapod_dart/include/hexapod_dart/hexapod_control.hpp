@@ -2,17 +2,17 @@
 #define HEXAPOD_DART_HEXAPOD_CONTROL
 
 #include <hexapod_dart/hexapod.hpp>
-#include <hexapod_controller/hexapod_controller_simple.hpp>
 
 namespace hexapod_dart {
 
+    template <typename Controller>
     class HexapodControl {
     public:
         using robot_t = std::shared_ptr<Hexapod>;
 
         HexapodControl() {}
-        HexapodControl(const std::vector<double>& ctrl, robot_t robot)
-            : _controller(ctrl, robot->broken_legs()), _robot(robot)
+        HexapodControl(const std::vector<double>& ctrl, const robot_t& robot, const dart::simulation::WorldPtr& world)
+            : _controller(ctrl, robot->broken_legs(), robot, world), _robot(robot)
         {
             _target_positions = _robot->skeleton()->getPositions();
 
@@ -49,7 +49,7 @@ namespace hexapod_dart {
         {
             auto angles = _controller.pos(t);
             for (size_t i = 0; i < angles.size(); i++)
-                _target_positions(i + 6) = ((i % 3 == 1) ? 1.0 : -1.0) * angles[i];
+                _target_positions(i + 6) = angles[i];
 
             set_commands();
         }
@@ -70,7 +70,7 @@ namespace hexapod_dart {
         }
 
     protected:
-        hexapod_controller::HexapodControllerSimple _controller;
+        Controller _controller;
         robot_t _robot;
 
         Eigen::VectorXd _target_positions;

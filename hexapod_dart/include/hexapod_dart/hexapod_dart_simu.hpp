@@ -11,6 +11,7 @@
 #include <dart/collision/dart/DARTCollisionDetector.h>
 #include <Eigen/Core>
 #include <hexapod_dart/hexapod.hpp>
+#include <hexapod_controller/hexapod_controller_simple.hpp>
 #include <hexapod_dart/hexapod_control.hpp>
 #include <hexapod_dart/safety_measures.hpp>
 #include <hexapod_dart/descriptors.hpp>
@@ -48,7 +49,7 @@ namespace hexapod_dart {
         using robot_t = std::shared_ptr<Hexapod>;
         // defaults
         struct defaults {
-            using hexapod_control_t = HexapodControl;
+            using hexapod_control_t = HexapodControl<hexapod_controller::HexapodControllerSimple<robot_t, dart::simulation::WorldPtr>>;
             using safety_measures_t = boost::fusion::vector<safety_measures::MaxHeight>;
             using descriptors_t = boost::fusion::vector<descriptors::DutyCycle>;
         };
@@ -64,7 +65,7 @@ namespace hexapod_dart {
         HexapodDARTSimu(const std::vector<double>& ctrl, robot_t robot) : _covered_distance(0.0),
                                                                           _energy(0.0),
                                                                           _world(std::make_shared<dart::simulation::World>()),
-                                                                          _controller(ctrl, robot),
+                                                                          _controller(ctrl, robot, _world),
                                                                           _old_index(0),
                                                                           _desc_period(2),
                                                                           _break(false)
@@ -250,7 +251,7 @@ namespace hexapod_dart {
             _break = disable;
         }
 
-        HexapodControl& controller()
+        hexapod_control_t& controller()
         {
             return _controller;
         }
