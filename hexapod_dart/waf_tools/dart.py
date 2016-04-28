@@ -36,7 +36,7 @@ def check_dart(conf):
 
 	# DART requires assimp library
 	assimp_check = ['/usr/local/include', '/usr/include']
-	assimp_libs = ['/usr/local/lib', '/usr/lib']
+	assimp_libs = ['/usr/local/lib', '/usr/lib', '/usr/lib/x86_64-linux-gnu/']
 	assimp_found = False
 	try:
 		assimp_found = conf.find_file('assimp/scene.h', assimp_check)
