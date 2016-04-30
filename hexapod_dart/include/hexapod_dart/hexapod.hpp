@@ -1,8 +1,8 @@
 #ifndef HEXAPOD_DART_HEXAPOD_HPP
 #define HEXAPOD_DART_HEXAPOD_HPP
 
-#include <dart/dart.h>
-#include <dart/utils/urdf/urdf.h>
+#include <dart/dart.hpp>
+#include <dart/utils/urdf/urdf.hpp>
 #include <Eigen/Core>
 #include <string>
 #include <fstream>

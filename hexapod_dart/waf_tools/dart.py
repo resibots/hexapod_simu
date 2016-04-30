@@ -59,14 +59,14 @@ def check_dart(conf):
 
 	try:
 		conf.start_msg('Checking for DART includes (including utils/urdf)')
-		res = conf.find_file('dart/dart.h', includes_check)
-		res = res and conf.find_file('dart/utils/utils.h', includes_check)
-		res = res and conf.find_file('dart/utils/urdf/urdf.h', includes_check)
+		res = conf.find_file('dart/dart.hpp', includes_check)
+		res = res and conf.find_file('dart/utils/utils.hpp', includes_check)
+		res = res and conf.find_file('dart/utils/urdf/urdf.hpp', includes_check)
 		conf.end_msg('ok')
 		try:
 			conf.start_msg('Checking for DART gui includes')
-			res = res and conf.find_file('dart/gui/gui.h', includes_check)
-			res = res and conf.find_file('dart/gui/osg/osg.h', includes_check)
+			res = res and conf.find_file('dart/gui/gui.hpp', includes_check)
+			res = res and conf.find_file('dart/gui/osg/osg.hpp', includes_check)
 			conf.end_msg('ok')
 		except:
 			conf.end_msg('Not found', 'RED')
