@@ -7,8 +7,8 @@
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/find.hpp>
 
-#include <dart/dart.h>
-#include <dart/collision/dart/DARTCollisionDetector.h>
+#include <dart/dart.hpp>
+#include <dart/collision/dart/DARTCollisionDetector.hpp>
 #include <Eigen/Core>
 #include <hexapod_dart/hexapod.hpp>
 #include <hexapod_controller/hexapod_controller_simple.hpp>
@@ -17,7 +17,7 @@
 #include <hexapod_dart/descriptors.hpp>
 
 #ifdef GRAPHIC
-#include <dart/gui/osg/osg.h>
+#include <dart/gui/osg/osg.hpp>
 #endif
 
 namespace hexapod_dart {
@@ -305,8 +305,8 @@ namespace hexapod_dart {
             double floor_width = 10.0;
             double floor_height = 0.1;
             auto box = std::make_shared<dart::dynamics::BoxShape>(Eigen::Vector3d(floor_width, floor_width, floor_height));
-            auto box_node = body->createShapeNodeWith<dart::dynamics::VisualAddon, dart::dynamics::CollisionAddon, dart::dynamics::DynamicsAddon>(box);
-            box_node->getVisualAddon()->setColor(dart::Color::Gray());
+            auto box_node = body->createShapeNodeWith<dart::dynamics::VisualAspect, dart::dynamics::CollisionAspect, dart::dynamics::DynamicsAspect>(box);
+            box_node->getVisualAspect()->setColor(dart::Color::Gray());
 
             // Put the body into position
             Eigen::Isometry3d tf(Eigen::Isometry3d::Identity());
