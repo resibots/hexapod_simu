@@ -67,7 +67,7 @@ void HexapodRobdynSimu::run(double duration, bool continuous, bool chain)
             _energy += (act_state - new_state).array().abs().sum();
             act_state = new_state;
             if (rob->bodies()[0]->get_in_contact() || _env->get_colision_between_legs()) {
-                _covered_distance = 00.0f;
+                _covered_distance = -10002;
                 return;
             }
             int nbCassee = 0;
@@ -152,7 +152,7 @@ void HexapodRobdynSimu::run(double duration, bool continuous, bool chain)
         _covered_distance = round(next_pos[1] * 100) / 100.0f;
 
         if (fabs(_covered_distance) > 10) {
-            _covered_distance = 00.0f;
+            _covered_distance = -10002;
         }
 
         _direction = atan2(-next_pos[0], next_pos[1]) * 180 / M_PI;
