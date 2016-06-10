@@ -16,8 +16,9 @@
     - Configure with `./waf configure --prefix=path_to_install`
     - Compile with `./waf build`
     - Install with `./waf install`
-- [DART]: DART (Dynamic Animation and Robotics Toolkit) is a collaborative, cross-platform, open source library that provides data structures and algorithms for kinematic and dynamic applications in robotics and computer animation. We use the **upstream version without bullet integration**:
+- [DART]: DART (Dynamic Animation and Robotics Toolkit) is a collaborative, cross-platform, open source library that provides data structures and algorithms for kinematic and dynamic applications in robotics and computer animation. We use the **6.1 version with or without bullet integration**:
     - Get the code with `git clone https://github.com/dartsim/dart.git`
+    - Checkout to the proper branch with `git checkout release-6.1`
     - Make sure you have installed all of the dependencies listed [here](https://github.com/dartsim/dart/wiki/DART%205.1%20Installation%20for%20Ubuntu#install-required-dependencies).
     - Go to the `dart` folder
     - `mkdir build && cd build`
@@ -88,17 +89,14 @@ def check_hexapod_dart(conf):
     conf.check_dart()
 
     includes_check = ['/usr/local/include', '/usr/include']
-    libs_check = ['/usr/local/lib', '/usr/lib']
 
     # You can customize where you want to check
     # e.g. here we search also in a folder defined by an environmental variable
     if 'RESIBOTS_DIR' in os.environ:
     	includes_check = [os.environ['RESIBOTS_DIR'] + '/include'] + includes_check
-    	libs_check = [os.environ['RESIBOTS_DIR'] + '/lib'] + libs_check
 
     if conf.options.hexapod_dart:
     	includes_check = [conf.options.hexapod_dart + '/include']
-    	libs_check = [conf.options.hexapod_dart + '/lib']
 
     try:
     	conf.start_msg('Checking for hexapod_dart includes')
@@ -134,7 +132,7 @@ Then in your C++ code you would have something like the following:
 
 // rest of code
 
-hexapod_dart::HexapodDARTSimu simu(controller_parameters, robot_ptr);
+hexapod_dart::HexapodDARTSimu<> simu(controller_parameters, robot_ptr);
 simu.run(duration_in_secs);
 
 // rest of code
