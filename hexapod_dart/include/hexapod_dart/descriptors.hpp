@@ -144,6 +144,8 @@ namespace hexapod_dart {
 
             void get(std::vector<double>& results)
             {
+                // We count the time the robot's root orientation has exceeded a threshold angle in every direction.
+                // This threshold angle is _perc_threshold*pi (empirically chosen).
                 double threshold = (_perc_threshold / 100.0) * dart::math::constants<double>::pi();
                 results.clear();
                 results.push_back(std::round(std::count_if(_roll_vec.begin(), _roll_vec.end(), [&threshold](double i) {return i>threshold; }) / double(_roll_vec.size()) * 100.0) / 100.0);
