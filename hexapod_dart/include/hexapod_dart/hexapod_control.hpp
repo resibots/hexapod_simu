@@ -35,7 +35,7 @@ namespace hexapod_dart {
             _controller.set_parameters(ctrl);
         }
 
-        const std::vector<double>& parameters()
+        const std::vector<double>& parameters() const
         {
             return _controller.parameters();
         }
