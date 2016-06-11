@@ -1,6 +1,7 @@
 #ifndef HEXAPOD_DART_DESCRIPTORS_HPP
 #define HEXAPOD_DART_DESCRIPTORS_HPP
 
+#include <algorithm>
 #include <map>
 #include <vector>
 #include <numeric>
@@ -122,6 +123,43 @@ namespace hexapod_dart {
 
         protected:
             std::vector<double> _rotation_traj;
+        };
+
+        struct BodyOrientation : public DescriptorBase {
+        public:
+            BodyOrientation() {}
+
+            template <typename Simu, typename robot>
+            void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector6d& init_trans)
+            {
+                // roll-pitch-yaw
+                Eigen::Matrix3d rr = dart::math::expMapRot(rob->rot());
+                Eigen::Matrix3d ro = dart::math::expMapRot({init_trans[0], init_trans[1], init_trans[2]});
+                auto rpy = dart::math::matrixToEulerXYZ(ro.inverse() * rr);
+
+                _roll_vec.push_back(rpy(0));
+                _pitch_vec.push_back(rpy(1));
+                _yaw_vec.push_back(rpy(2));
+            }
+
+            void get(std::vector<double>& results)
+            {
+                double threshold = (_perc_threshold / 100.0) * dart::math::constants<double>::pi();
+                results.clear();
+                results.push_back(std::round(std::count_if(_roll_vec.begin(), _roll_vec.end(), [&threshold](double i) {return i>threshold; }) / double(_roll_vec.size()) * 100.0) / 100.0);
+                results.push_back(std::round(std::count_if(_roll_vec.begin(), _roll_vec.end(), [&threshold](double i) {return i<-threshold; }) / double(_roll_vec.size()) * 100.0) / 100.0);
+                results.push_back(std::round(std::count_if(_pitch_vec.begin(), _pitch_vec.end(), [&threshold](double i) {return i>threshold; }) / double(_pitch_vec.size()) * 100.0) / 100.0);
+                results.push_back(std::round(std::count_if(_pitch_vec.begin(), _pitch_vec.end(), [&threshold](double i) {return i<-threshold; }) / double(_pitch_vec.size()) * 100.0) / 100.0);
+                results.push_back(std::round(std::count_if(_yaw_vec.begin(), _yaw_vec.end(), [&threshold](double i) {return i>threshold; }) / double(_yaw_vec.size()) * 100.0) / 100.0);
+                results.push_back(std::round(std::count_if(_yaw_vec.begin(), _yaw_vec.end(), [&threshold](double i) {return i<-threshold; }) / double(_yaw_vec.size()) * 100.0) / 100.0);
+            }
+
+        protected:
+            // We count the time the robot's root orientation has exceeded a threshold angle in every direction.
+            // This threshold angle is _perc_threshold*pi (empirically chosen).
+            const double _perc_threshold = 0.5;
+
+            std::vector<double> _roll_vec, _pitch_vec, _yaw_vec;
         };
     }
 }
