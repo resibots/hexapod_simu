@@ -19,6 +19,11 @@ int main()
 
     using desc_t = boost::fusion::vector<hexapod_dart::descriptors::DutyCycle, hexapod_dart::descriptors::BodyOrientation>;
     hexapod_dart::HexapodDARTSimu<hexapod_dart::desc<desc_t>> simu(ctrl, global_robot);
+    Eigen::Vector6d p;
+    p << 0, 0, 0, 1, -1, 0.15;
+    simu.add_box(p, Eigen::Vector3d(0.3, 0.3, 0.3));
+    p << 0, 0, 0, 1, 1, 0;
+    simu.add_ellipsoid(p, Eigen::Vector3d(0.3, 0.3, 0.3));
     // for(int i=0;i<167;i++)
     //     simu.run(0.015, true);
 
