@@ -256,7 +256,7 @@ namespace hexapod_dart {
         }
 
         // pose: RPY-XYZ, dims: XYZ
-        void add_box(const Eigen::Vector6d& pose, const Eigen::Vector3d& dims, const Eigen::Vector4d& color = dart::Color::Red(1.0), const std::string& box_name = "box")
+        void add_box(const Eigen::Vector6d& pose, const Eigen::Vector3d& dims, double mass = 1000.0, const Eigen::Vector4d& color = dart::Color::Red(1.0), const std::string& box_name = "box")
         {
             std::string name = box_name;
             // We do not want boxes with the same names!
@@ -276,6 +276,7 @@ namespace hexapod_dart {
 
             // Give the box a body
             dart::dynamics::BodyNodePtr body = box_skel->createJointAndBodyNodePair<dart::dynamics::FreeJoint>(nullptr).second;
+            body->setMass(mass);
 
             // Give the body a shape
             auto box = std::make_shared<dart::dynamics::BoxShape>(dims);
@@ -292,7 +293,7 @@ namespace hexapod_dart {
         }
 
         // pose: RPY-XYZ, dims: XYZ
-        void add_ellipsoid(const Eigen::Vector6d& pose, const Eigen::Vector3d& dims, const Eigen::Vector4d& color = dart::Color::Red(1.0), const std::string& ellipsoid_name = "sphere")
+        void add_ellipsoid(const Eigen::Vector6d& pose, const Eigen::Vector3d& dims, double mass = 1000.0, const Eigen::Vector4d& color = dart::Color::Red(1.0), const std::string& ellipsoid_name = "sphere")
         {
             std::string name = ellipsoid_name;
             // We do not want ellipsoids with the same names!
@@ -312,6 +313,7 @@ namespace hexapod_dart {
 
             // Give the ellipsoid a body
             dart::dynamics::BodyNodePtr body = ellipsoid_skel->createJointAndBodyNodePair<dart::dynamics::FreeJoint>(nullptr).second;
+            body->setMass(mass);
 
             // Give the body a shape
             auto ellipsoid = std::make_shared<dart::dynamics::EllipsoidShape>(dims);
