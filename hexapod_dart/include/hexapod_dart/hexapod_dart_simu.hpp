@@ -250,9 +250,90 @@ namespace hexapod_dart {
             _break = disable;
         }
 
-        HexapodControl& controller()
+        hexapod_control_t& controller()
         {
             return _controller;
+        }
+
+        // pose: RPY-XYZ, dims: XYZ
+        void add_box(const Eigen::Vector6d& pose, const Eigen::Vector3d& dims, const Eigen::Vector4d& color = dart::Color::Red(1.0), const std::string& box_name = "box")
+        {
+            std::string name = box_name;
+            // We do not want boxes with the same names!
+            while (_world->getSkeleton(name) != nullptr) {
+                if (name[name.size() - 2] == '_') {
+                    int i = name.back() - '0';
+                    i++;
+                    name.pop_back();
+                    name = name + std::to_string(i);
+                }
+                else {
+                    name = name + "_1";
+                }
+            }
+
+            dart::dynamics::SkeletonPtr box_skel = dart::dynamics::Skeleton::create(name);
+
+            // Give the box a body
+            dart::dynamics::BodyNodePtr body = box_skel->createJointAndBodyNodePair<dart::dynamics::FreeJoint>(nullptr).second;
+
+            // Give the body a shape
+            auto box = std::make_shared<dart::dynamics::BoxShape>(dims);
+            auto box_node = body->createShapeNodeWith<dart::dynamics::VisualAspect, dart::dynamics::CollisionAspect, dart::dynamics::DynamicsAspect>(box);
+            // TO-DO: Choose color
+            box_node->getVisualAspect()->setColor(color);
+
+            // Put the body into position
+            // Eigen::Vector6d p = pose;
+            // p(5) += dims(2) / 2.0;
+            box_skel->setPositions(pose);
+
+            _world->addSkeleton(box_skel);
+            _objects.push_back(box_skel);
+        }
+
+        // pose: RPY-XYZ, dims: XYZ
+        void add_ellipsoid(const Eigen::Vector6d& pose, const Eigen::Vector3d& dims, const Eigen::Vector4d& color = dart::Color::Red(1.0), const std::string& ellipsoid_name = "sphere")
+        {
+            std::string name = ellipsoid_name;
+            // We do not want boxes with the same names!
+            while (_world->getSkeleton(name) != nullptr) {
+                if (name[name.size() - 2] == '_') {
+                    int i = name.back() - '0';
+                    i++;
+                    name.pop_back();
+                    name = name + std::to_string(i);
+                }
+                else {
+                    name = name + "_1";
+                }
+            }
+
+            dart::dynamics::SkeletonPtr ellipsoid_skel = dart::dynamics::Skeleton::create(name);
+
+            // Give the sphere a body
+            dart::dynamics::BodyNodePtr body = ellipsoid_skel->createJointAndBodyNodePair<dart::dynamics::FreeJoint>(nullptr).second;
+
+            // Give the body a shape
+            auto ellipsoid = std::make_shared<dart::dynamics::EllipsoidShape>(dims);
+            auto ellipsoid_node = body->createShapeNodeWith<dart::dynamics::VisualAspect, dart::dynamics::CollisionAspect, dart::dynamics::DynamicsAspect>(ellipsoid);
+            // TO-DO: Choose color
+            ellipsoid_node->getVisualAspect()->setColor(color);
+
+            // Put the body into position
+            // Eigen::Vector6d p = pose;
+            // p(5) += dims(2) / 2.0;
+            ellipsoid_skel->setPositions(pose);
+
+            _world->addSkeleton(ellipsoid_skel);
+            _objects.push_back(ellipsoid_skel);
+        }
+
+        void clear_objects()
+        {
+            for (auto obj : _objects) {
+                _world->removeSkeleton(obj);
+            }
         }
 
     protected:
@@ -328,6 +409,7 @@ namespace hexapod_dart {
         bool _break;
         safety_measures_t _safety_measures;
         descriptors_t _descriptors;
+        std::vector<dart::dynamics::SkeletonPtr> _objects;
 #ifdef GRAPHIC
         osg::ref_ptr<dart::gui::osg::WorldNode> _osg_world_node;
         dart::gui::osg::Viewer _osg_viewer;
