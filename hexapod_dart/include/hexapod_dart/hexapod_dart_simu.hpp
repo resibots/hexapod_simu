@@ -334,6 +334,7 @@ namespace hexapod_dart {
             for (auto obj : _objects) {
                 _world->removeSkeleton(obj);
             }
+            _objects.clear();
         }
 
     protected:
