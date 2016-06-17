@@ -296,7 +296,7 @@ namespace hexapod_dart {
         void add_ellipsoid(const Eigen::Vector6d& pose, const Eigen::Vector3d& dims, const Eigen::Vector4d& color = dart::Color::Red(1.0), const std::string& ellipsoid_name = "sphere")
         {
             std::string name = ellipsoid_name;
-            // We do not want boxes with the same names!
+            // We do not want ellipsoids with the same names!
             while (_world->getSkeleton(name) != nullptr) {
                 if (name[name.size() - 2] == '_') {
                     int i = name.back() - '0';
