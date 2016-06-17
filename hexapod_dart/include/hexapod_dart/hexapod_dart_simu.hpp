@@ -280,7 +280,6 @@ namespace hexapod_dart {
             // Give the body a shape
             auto box = std::make_shared<dart::dynamics::BoxShape>(dims);
             auto box_node = body->createShapeNodeWith<dart::dynamics::VisualAspect, dart::dynamics::CollisionAspect, dart::dynamics::DynamicsAspect>(box);
-            // TO-DO: Choose color
             box_node->getVisualAspect()->setColor(color);
 
             // Put the body into position
@@ -311,13 +310,12 @@ namespace hexapod_dart {
 
             dart::dynamics::SkeletonPtr ellipsoid_skel = dart::dynamics::Skeleton::create(name);
 
-            // Give the sphere a body
+            // Give the ellipsoid a body
             dart::dynamics::BodyNodePtr body = ellipsoid_skel->createJointAndBodyNodePair<dart::dynamics::FreeJoint>(nullptr).second;
 
             // Give the body a shape
             auto ellipsoid = std::make_shared<dart::dynamics::EllipsoidShape>(dims);
             auto ellipsoid_node = body->createShapeNodeWith<dart::dynamics::VisualAspect, dart::dynamics::CollisionAspect, dart::dynamics::DynamicsAspect>(ellipsoid);
-            // TO-DO: Choose color
             ellipsoid_node->getVisualAspect()->setColor(color);
 
             // Put the body into position
