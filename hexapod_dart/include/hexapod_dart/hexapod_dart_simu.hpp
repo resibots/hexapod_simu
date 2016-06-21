@@ -14,6 +14,7 @@
 #include <hexapod_dart/hexapod_control.hpp>
 #include <hexapod_dart/safety_measures.hpp>
 #include <hexapod_dart/descriptors.hpp>
+#include <hexapod_dart/visualizations.hpp>
 
 #ifdef GRAPHIC
 #include <dart/gui/osg/osg.hpp>
@@ -24,10 +25,12 @@ namespace hexapod_dart {
     BOOST_PARAMETER_TEMPLATE_KEYWORD(hexapod_control)
     BOOST_PARAMETER_TEMPLATE_KEYWORD(safety)
     BOOST_PARAMETER_TEMPLATE_KEYWORD(desc)
+    BOOST_PARAMETER_TEMPLATE_KEYWORD(viz)
 
     typedef boost::parameter::parameters<boost::parameter::optional<tag::hexapod_control>,
         boost::parameter::optional<tag::safety>,
-        boost::parameter::optional<tag::desc>> class_signature;
+        boost::parameter::optional<tag::desc>,
+        boost::parameter::optional<tag::viz>> class_signature;
 
     template <typename Simu, typename robot>
     struct Refresh {
@@ -42,7 +45,7 @@ namespace hexapod_dart {
         void operator()(T& x) const { x(_simu, _robot, _init_trans); }
     };
 
-    template <class A1 = boost::parameter::void_, class A2 = boost::parameter::void_, class A3 = boost::parameter::void_>
+    template <class A1 = boost::parameter::void_, class A2 = boost::parameter::void_, class A3 = boost::parameter::void_, class A4 = boost::parameter::void_>
     class HexapodDARTSimu {
     public:
         using robot_t = std::shared_ptr<Hexapod>;
@@ -51,15 +54,18 @@ namespace hexapod_dart {
             using hexapod_control_t = HexapodControl;
             using safety_measures_t = boost::fusion::vector<safety_measures::MaxHeight>;
             using descriptors_t = boost::fusion::vector<descriptors::DutyCycle>;
+            using viz_t = boost::fusion::vector<visualizations::HeadingArrow>;
         };
 
         // extract the types
-        using args = typename class_signature::bind<A1, A2, A3>::type;
+        using args = typename class_signature::bind<A1, A2, A3, A4>::type;
         using hexapod_control_t = typename boost::parameter::binding<args, tag::hexapod_control, typename defaults::hexapod_control_t>::type;
         using SafetyMeasures = typename boost::parameter::binding<args, tag::safety, typename defaults::safety_measures_t>::type;
         using Descriptors = typename boost::parameter::binding<args, tag::desc, typename defaults::descriptors_t>::type;
+        using Visualizations = typename boost::parameter::binding<args, tag::viz, typename defaults::viz_t>::type;
         using safety_measures_t = typename boost::mpl::if_<boost::fusion::traits::is_sequence<SafetyMeasures>, SafetyMeasures, boost::fusion::vector<SafetyMeasures>>::type;
         using descriptors_t = typename boost::mpl::if_<boost::fusion::traits::is_sequence<Descriptors>, Descriptors, boost::fusion::vector<Descriptors>>::type;
+        using viz_t = typename boost::mpl::if_<boost::fusion::traits::is_sequence<Visualizations>, Visualizations, boost::fusion::vector<Visualizations>>::type;
 
         HexapodDARTSimu(const std::vector<double>& ctrl, robot_t robot) : _covered_distance(0.0),
                                                                           _energy(0.0),
@@ -122,6 +128,8 @@ namespace hexapod_dart {
 
                 // update safety measures
                 boost::fusion::for_each(_safety_measures, Refresh<HexapodDARTSimu, Hexapod>(*this, rob, init_trans));
+                // update visualizations
+                boost::fusion::for_each(_visualizations, Refresh<HexapodDARTSimu, Hexapod>(*this, rob, init_trans));
 
                 if (_break) {
                     _covered_distance = -10002.0;
@@ -410,6 +418,7 @@ namespace hexapod_dart {
         bool _break;
         safety_measures_t _safety_measures;
         descriptors_t _descriptors;
+        viz_t _visualizations;
         std::vector<dart::dynamics::SkeletonPtr> _objects;
 #ifdef GRAPHIC
         osg::ref_ptr<dart::gui::osg::WorldNode> _osg_world_node;
