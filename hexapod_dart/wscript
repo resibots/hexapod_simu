@@ -81,3 +81,4 @@ def build(bld):
     bld.install_files('${PREFIX}/include/hexapod_dart', 'include/hexapod_dart/hexapod_control.hpp')
     bld.install_files('${PREFIX}/include/hexapod_dart', 'include/hexapod_dart/safety_measures.hpp')
     bld.install_files('${PREFIX}/include/hexapod_dart', 'include/hexapod_dart/descriptors.hpp')
+    bld.install_files('${PREFIX}/include/hexapod_dart', 'include/hexapod_dart/visualizations.hpp')
