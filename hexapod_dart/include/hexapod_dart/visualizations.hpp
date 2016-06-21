@@ -60,6 +60,8 @@ namespace hexapod_dart {
                     bn->template createShapeNodeWith<dart::dynamics::VisualAspect>(_arrow);
                     init = true;
                 }
+
+                _arrow->setPositions(Params::head(), Params::tail());
             }
 
         protected:
