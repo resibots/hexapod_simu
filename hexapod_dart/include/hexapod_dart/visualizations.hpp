@@ -21,7 +21,7 @@ namespace hexapod_dart {
                         rob->pos(),
                         arrow_properties, dart::Color::Orange(1.0)));
                     auto bn = rob->skeleton()->getBodyNode("base_link");
-                    bn->createShapeNodeWith<dart::dynamics::VisualAspect>(_arrow);
+                    bn->template createShapeNodeWith<dart::dynamics::VisualAspect>(_arrow);
                     init = true;
                 }
 
@@ -41,32 +41,29 @@ namespace hexapod_dart {
             bool init;
         };
 
+        template <typename Params>
         struct PointingArrow {
         public:
-            PointingArrow(const std::string& skel_name, const std::string& body_name, const Eigen::Vector3d& tail, const Eigen::Vector3d& head, double radius = 0.01, const Eigen::Vector4d& color = dart::Color::Orange(1.0)) : _skel_name(skel_name), _body_name(body_name), _tail(tail), _head(head), _radius(radius), _color(color), init(false) {}
+            PointingArrow() : init(false) {}
 
             template <typename Simu, typename robot>
             void operator()(Simu& simu, std::shared_ptr<robot> rob, const Eigen::Vector6d& init_trans)
             {
                 if (!init) {
                     dart::dynamics::ArrowShape::Properties arrow_properties;
-                    arrow_properties.mRadius = _radius;
+                    arrow_properties.mRadius = Params::radius();
                     _arrow = std::shared_ptr<dart::dynamics::ArrowShape>(new dart::dynamics::ArrowShape(
-                        _head,
-                        _tail,
-                        arrow_properties, _color));
-                    auto bn = simu.world()->getSkeleton(_skel_name)->getBodyNode(_body_name);
-                    bn->createShapeNodeWith<dart::dynamics::VisualAspect>(_arrow);
+                        Params::head(),
+                        Params::tail(),
+                        arrow_properties, Params::color()));
+                    auto bn = simu.world()->getSkeleton(Params::skel_name())->getBodyNode(Params::body_name());
+                    bn->template createShapeNodeWith<dart::dynamics::VisualAspect>(_arrow);
                     init = true;
                 }
             }
 
         protected:
             std::shared_ptr<dart::dynamics::ArrowShape> _arrow;
-            std::string _skel_name, _body_name;
-            Eigen::Vector3d _tail, _head;
-            double _radius;
-            Eigen::Vector4d _color;
             bool init;
         };
     }
