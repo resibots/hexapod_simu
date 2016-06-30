@@ -20,8 +20,10 @@ namespace hexapod_dart {
     public:
         Hexapod() {}
 
-        Hexapod(std::string urdf_file, std::vector<HexapodDamage> damages) : _skeleton(_load_urdf(urdf_file))
+        Hexapod(std::string urdf_file, std::vector<HexapodDamage> damages)
         {
+            _damages = damages;
+            _skeleton = _load_urdf(urdf_file);
             assert(_skeleton != nullptr);
             _set_damages(damages);
         }
@@ -100,6 +102,20 @@ namespace hexapod_dart {
             std::ifstream t(urdf_file);
             std::string str((std::istreambuf_iterator<char>(t)),
                 std::istreambuf_iterator<char>());
+
+            // TO-DO: Do it in a proper way
+            for (auto dmg : _damages) {
+                if (dmg.type == "leg_shortening") {
+                    std::string leg_link_name_start = "<link name=\"leg_" + std::string(1, dmg.data[0]) + "_3\">";
+                    std::string leg_link_end = "</link>";
+                    size_t found = str.find(leg_link_name_start);
+                    if (found != std::string::npos) {
+                        size_t found2 = str.find(leg_link_end, found);
+                        std::string to_replace = "<visual><origin rpy=\"1.57079632679 0 0\" xyz=\"0.0125 0.035 0\"/><geometry><cylinder length=\"0.07\" radius=\"0.025\"/></geometry><material name=\"Red\"/></visual><visual><origin rpy=\"1.57079632679 0 0\" xyz=\"0.0125 0.0475 0\"/><geometry><sphere radius=\"0.025\"/></geometry><material name=\"Red\"/></visual><collision><origin rpy=\"1.57079632679 0 0\" xyz=\"0.0125 0.035 0\"/><geometry><box size=\"0.025 0.025 0.07\"/></geometry></collision><collision><origin rpy=\"1.57079632679 0 0\" xyz=\"0.0125 0.0475 0\"/><geometry><sphere radius=\"0.025\"/></geometry><material name=\"Red\"/></collision><inertial><!-- CENTER OF MASS --><origin rpy=\"1.57079632679 0 0\" xyz=\"0.0125 0.035 0\"/><mass value=\"0.04\"/><!-- box inertia: 1/12*m(y^2+z^2), ... --><inertia ixx=\"6.74166666667e-05\" ixy=\"0\" ixz=\"0\" iyy=\"6.74166666667e-05\" iyz=\"0\" izz=\"4.16666666667e-06\"/></inertial>";
+                        str.replace(found + 22, found2 - found - 22, to_replace);
+                    }
+                }
+            }
             // Load the Skeleton from a file
             dart::utils::DartLoader loader;
             dart::dynamics::SkeletonPtr tmp_skel = loader.parseSkeletonString(str, "");
@@ -131,12 +147,6 @@ namespace hexapod_dart {
                         bd->remove();
                     }
                 }
-                else if (dmg.type == "body_removal") {
-                    std::cerr << "body_removal is not working for the moment!" << std::endl;
-                    // auto bd = _skeleton->getBodyNode(dmg.data);
-                    // bd->removeAllShapeNodes();
-                    // bd->remove();
-                }
                 else if (dmg.type == "blocked_joint") {
                     auto jnt = _skeleton->getJoint(dmg.data);
                     if (dmg.extra)
@@ -154,6 +164,7 @@ namespace hexapod_dart {
         dart::dynamics::SkeletonPtr _skeleton;
         std::vector<HexapodDamage> _damages;
         std::vector<int> _broken_legs;
+        std::vector<int> _removed_joints;
     };
 }
 

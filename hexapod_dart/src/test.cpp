@@ -18,11 +18,12 @@ struct Params {
 
 int main()
 {
-    // hide errors/warnings from DART
-    std::cerr.setstate(std::ios_base::failbit);
     std::vector<hexapod_dart::HexapodDamage> brk = {};
     // Examples of leg damages
     // hexapod_dart::HexapodDamage dmg;
+    // dmg.type = "leg_shortening";
+    // dmg.data = "2";
+    // brk.push_back(dmg);
     // dmg.type = "leg_removal";
     // dmg.data = "2";
     // brk.push_back(dmg);
