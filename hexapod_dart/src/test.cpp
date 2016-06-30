@@ -20,7 +20,21 @@ int main()
 {
     // hide errors/warnings from DART
     std::cerr.setstate(std::ios_base::failbit);
-    std::vector<int> brk = {};
+    std::vector<hexapod_dart::HexapodDamage> brk = {};
+    // Examples of leg damages
+    // hexapod_dart::HexapodDamage dmg;
+    // dmg.type = "leg_removal";
+    // dmg.data = "2";
+    // brk.push_back(dmg);
+    // dmg.type = "disabled_joint";
+    // dmg.data = "body_leg_1";
+    // brk.push_back(dmg);
+    // dmg.type = "disabled_joint";
+    // dmg.data = "leg_1_1_2";
+    // brk.push_back(dmg);
+    // dmg.type = "disabled_joint";
+    // dmg.data = "leg_1_2_3";
+    // brk.push_back(dmg);
 
     auto global_robot = std::make_shared<hexapod_dart::Hexapod>(std::string(std::getenv("RESIBOTS_DIR")) + "/share/hexapod_models/URDF/pexod.urdf", brk);
 
