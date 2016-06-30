@@ -13,6 +13,7 @@ namespace hexapod_dart {
     struct HexapodDamage {
         std::string type;
         std::string data;
+        void* extra = nullptr;
     };
 
     class Hexapod {
@@ -136,8 +137,11 @@ namespace hexapod_dart {
                     // bd->removeAllShapeNodes();
                     // bd->remove();
                 }
-                else if (dmg.type == "disabled_joint") {
-                    _skeleton->getJoint(dmg.data)->setActuatorType(dart::dynamics::Joint::LOCKED);
+                else if (dmg.type == "blocked_joint") {
+                    auto jnt = _skeleton->getJoint(dmg.data);
+                    if (dmg.extra)
+                        jnt->setPosition(0, *((double*)dmg.extra));
+                    jnt->setActuatorType(dart::dynamics::Joint::LOCKED);
                 }
                 else if (dmg.type == "free_joint") {
                     _skeleton->getJoint(dmg.data)->setActuatorType(dart::dynamics::Joint::PASSIVE);

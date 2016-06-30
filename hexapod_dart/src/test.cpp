@@ -26,13 +26,15 @@ int main()
     // dmg.type = "leg_removal";
     // dmg.data = "2";
     // brk.push_back(dmg);
-    // dmg.type = "disabled_joint";
+    // dmg.type = "blocked_joint";
     // dmg.data = "body_leg_1";
+    // dmg.extra = new double(1.0);
     // brk.push_back(dmg);
-    // dmg.type = "disabled_joint";
+    // dmg.type = "blocked_joint";
     // dmg.data = "leg_1_1_2";
+    // dmg.extra = nullptr;
     // brk.push_back(dmg);
-    // dmg.type = "disabled_joint";
+    // dmg.type = "blocked_joint";
     // dmg.data = "leg_1_2_3";
     // brk.push_back(dmg);
 
