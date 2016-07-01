@@ -260,8 +260,8 @@ namespace hexapod_dart {
             return _controller;
         }
 
-        // pose: RPY-XYZ, dims: XYZ
-        void add_box(const Eigen::Vector6d& pose, const Eigen::Vector3d& dims, double mass = 1000.0, const Eigen::Vector4d& color = dart::Color::Red(1.0), const std::string& box_name = "box")
+        // pose: Orientation-Position, dims: XYZ
+        void add_box(const Eigen::Vector6d& pose, const Eigen::Vector3d& dims, std::string type = "free", double mass = 1.0, const Eigen::Vector4d& color = dart::Color::Red(1.0), const std::string& box_name = "box")
         {
             std::string name = box_name;
             // We do not want boxes with the same names!
@@ -280,7 +280,11 @@ namespace hexapod_dart {
             dart::dynamics::SkeletonPtr box_skel = dart::dynamics::Skeleton::create(name);
 
             // Give the box a body
-            dart::dynamics::BodyNodePtr body = box_skel->createJointAndBodyNodePair<dart::dynamics::FreeJoint>(nullptr).second;
+            dart::dynamics::BodyNodePtr body;
+            if (type == "free")
+                body = box_skel->createJointAndBodyNodePair<dart::dynamics::FreeJoint>(nullptr).second;
+            else
+                body = box_skel->createJointAndBodyNodePair<dart::dynamics::WeldJoint>(nullptr).second;
             body->setMass(mass);
 
             // Give the body a shape
@@ -289,16 +293,17 @@ namespace hexapod_dart {
             box_node->getVisualAspect()->setColor(color);
 
             // Put the body into position
-            // Eigen::Vector6d p = pose;
-            // p(5) += dims(2) / 2.0;
-            box_skel->setPositions(pose);
+            if (type == "free") // free floating
+                box_skel->setPositions(pose);
+            else // fixed
+                body->getParentJoint()->setTransformFromParentBodyNode(dart::math::expMap(pose));
 
             _world->addSkeleton(box_skel);
             _objects.push_back(box_skel);
         }
 
-        // pose: RPY-XYZ, dims: XYZ
-        void add_ellipsoid(const Eigen::Vector6d& pose, const Eigen::Vector3d& dims, double mass = 1000.0, const Eigen::Vector4d& color = dart::Color::Red(1.0), const std::string& ellipsoid_name = "sphere")
+        // pose: Orientation-Position, dims: XYZ
+        void add_ellipsoid(const Eigen::Vector6d& pose, const Eigen::Vector3d& dims, std::string type = "free", double mass = 1.0, const Eigen::Vector4d& color = dart::Color::Red(1.0), const std::string& ellipsoid_name = "sphere")
         {
             std::string name = ellipsoid_name;
             // We do not want ellipsoids with the same names!
@@ -317,7 +322,11 @@ namespace hexapod_dart {
             dart::dynamics::SkeletonPtr ellipsoid_skel = dart::dynamics::Skeleton::create(name);
 
             // Give the ellipsoid a body
-            dart::dynamics::BodyNodePtr body = ellipsoid_skel->createJointAndBodyNodePair<dart::dynamics::FreeJoint>(nullptr).second;
+            dart::dynamics::BodyNodePtr body;
+            if (type == "free")
+                body = ellipsoid_skel->createJointAndBodyNodePair<dart::dynamics::FreeJoint>(nullptr).second;
+            else
+                body = ellipsoid_skel->createJointAndBodyNodePair<dart::dynamics::WeldJoint>(nullptr).second;
             body->setMass(mass);
 
             // Give the body a shape
@@ -326,9 +335,10 @@ namespace hexapod_dart {
             ellipsoid_node->getVisualAspect()->setColor(color);
 
             // Put the body into position
-            // Eigen::Vector6d p = pose;
-            // p(5) += dims(2) / 2.0;
-            ellipsoid_skel->setPositions(pose);
+            if (type == "free") // free floating
+                ellipsoid_skel->setPositions(pose);
+            else // fixed
+                body->getParentJoint()->setTransformFromParentBodyNode(dart::math::expMap(pose));
 
             _world->addSkeleton(ellipsoid_skel);
             _objects.push_back(ellipsoid_skel);
