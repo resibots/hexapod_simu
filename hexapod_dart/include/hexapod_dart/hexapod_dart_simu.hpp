@@ -90,6 +90,7 @@ namespace hexapod_dart {
             _controller.set_parameters(ctrl);
 
 #ifdef GRAPHIC
+            _fixed_camera = false;
             _osg_world_node = new dart::gui::osg::WorldNode(_world);
             _osg_viewer.addWorldNode(_osg_world_node);
             _osg_viewer.setUpViewInWindow(0, 0, 640, 480);
@@ -137,11 +138,13 @@ namespace hexapod_dart {
                 }
 
 #ifdef GRAPHIC
-                auto COM = rob->skeleton()->getCOM();
-                // set camera to follow hexapod
-                _osg_viewer.getCameraManipulator()->setHomePosition(
-                    osg::Vec3d(-0.5, 3, 1), osg::Vec3d(COM(0), COM(1), COM(2)), osg::Vec3d(0, 0, 1));
-                _osg_viewer.home();
+                if (!_fixed_camera) {
+                    auto COM = rob->skeleton()->getCOM();
+                    // set camera to follow hexapod
+                    _osg_viewer.getCameraManipulator()->setHomePosition(
+                        osg::Vec3d(-0.5, 3, 1), osg::Vec3d(COM(0), COM(1), COM(2)), osg::Vec3d(0, 0, 1));
+                    _osg_viewer.home();
+                }
                 // process next frame
                 _osg_viewer.frame();
 #endif
@@ -195,6 +198,26 @@ namespace hexapod_dart {
         {
             return _world;
         }
+
+#ifdef GRAPHIC
+        void fixed_camera(const Eigen::Vector3d& camera_pos, const Eigen::Vector3d& look_at = Eigen::Vector3d(0, 0, 0), const Eigen::Vector3d& up = Eigen::Vector3d(0, 0, 1))
+        {
+            _fixed_camera = true;
+            _camera_pos = camera_pos;
+            _look_at = look_at;
+            _camera_up = up;
+
+            // set camera position
+            _osg_viewer.getCameraManipulator()->setHomePosition(
+                osg::Vec3d(_camera_pos(0), _camera_pos(1), _camera_pos(2)), osg::Vec3d(_look_at(0), _look_at(1), _look_at(2)), osg::Vec3d(_camera_up(0), _camera_up(1), _camera_up(2)));
+            _osg_viewer.home();
+        }
+
+        void follow_hexapod()
+        {
+            _fixed_camera = false;
+        }
+#endif
 
         template <typename Desc, typename T>
         void get_descriptor(T& result)
@@ -428,6 +451,10 @@ namespace hexapod_dart {
         viz_t _visualizations;
         std::vector<dart::dynamics::SkeletonPtr> _objects;
 #ifdef GRAPHIC
+        bool _fixed_camera;
+        Eigen::Vector3d _look_at;
+        Eigen::Vector3d _camera_pos;
+        Eigen::Vector3d _camera_up;
         osg::ref_ptr<dart::gui::osg::WorldNode> _osg_world_node;
         dart::gui::osg::Viewer _osg_viewer;
 #endif
