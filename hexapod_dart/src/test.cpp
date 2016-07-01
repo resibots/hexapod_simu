@@ -51,6 +51,9 @@ int main()
     using desc_t = boost::fusion::vector<hexapod_dart::descriptors::DutyCycle, hexapod_dart::descriptors::BodyOrientation>;
     using viz_t = boost::fusion::vector<hexapod_dart::visualizations::HeadingArrow, hexapod_dart::visualizations::PointingArrow<Params>>;
     hexapod_dart::HexapodDARTSimu<hexapod_dart::desc<desc_t>, hexapod_dart::viz<viz_t>> simu(ctrl, global_robot);
+#ifdef GRAPHIC
+    simu.fixed_camera(Eigen::Vector3d(0, 1, 5));
+#endif
     Eigen::Vector6d p;
     p << 0, 0, 0, 1, -1, 0.15;
     simu.add_box(p, Eigen::Vector3d(0.3, 0.3, 0.3));
