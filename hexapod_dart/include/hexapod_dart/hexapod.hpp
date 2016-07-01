@@ -102,20 +102,6 @@ namespace hexapod_dart {
             std::ifstream t(urdf_file);
             std::string str((std::istreambuf_iterator<char>(t)),
                 std::istreambuf_iterator<char>());
-
-            // TO-DO: Do it in a proper way
-            for (auto dmg : _damages) {
-                if (dmg.type == "leg_shortening") {
-                    std::string leg_link_name_start = "<link name=\"leg_" + std::string(1, dmg.data[0]) + "_3\">";
-                    std::string leg_link_end = "</link>";
-                    size_t found = str.find(leg_link_name_start);
-                    if (found != std::string::npos) {
-                        size_t found2 = str.find(leg_link_end, found);
-                        std::string to_replace = "<visual><origin rpy=\"1.57079632679 0 0\" xyz=\"0.0125 0.035 0\"/><geometry><cylinder length=\"0.07\" radius=\"0.025\"/></geometry><material name=\"Red\"/></visual><visual><origin rpy=\"1.57079632679 0 0\" xyz=\"0.0125 0.0475 0\"/><geometry><sphere radius=\"0.025\"/></geometry><material name=\"Red\"/></visual><collision><origin rpy=\"1.57079632679 0 0\" xyz=\"0.0125 0.035 0\"/><geometry><box size=\"0.025 0.025 0.07\"/></geometry></collision><collision><origin rpy=\"1.57079632679 0 0\" xyz=\"0.0125 0.0475 0\"/><geometry><sphere radius=\"0.025\"/></geometry><material name=\"Red\"/></collision><inertial><!-- CENTER OF MASS --><origin rpy=\"1.57079632679 0 0\" xyz=\"0.0125 0.035 0\"/><mass value=\"0.04\"/><!-- box inertia: 1/12*m(y^2+z^2), ... --><inertia ixx=\"6.74166666667e-05\" ixy=\"0\" ixz=\"0\" iyy=\"6.74166666667e-05\" iyz=\"0\" izz=\"4.16666666667e-06\"/></inertial>";
-                        str.replace(found + 22, found2 - found - 22, to_replace);
-                    }
-                }
-            }
             // Load the Skeleton from a file
             dart::utils::DartLoader loader;
             dart::dynamics::SkeletonPtr tmp_skel = loader.parseSkeletonString(str, "");
@@ -145,6 +131,29 @@ namespace hexapod_dart {
                         auto bd = _skeleton->getBodyNode(leg_bd_name);
                         bd->removeAllShapeNodes();
                         bd->remove();
+                    }
+                }
+                else if (dmg.type == "leg_shortening") {
+                    std::string leg_bd_name = "leg_" + dmg.data + "_3";
+                    auto bd = _skeleton->getBodyNode(leg_bd_name);
+                    bd->setMass(bd->getMass() / 2.0);
+                    auto nodes = bd->getShapeNodes();
+
+                    for (auto node : nodes) {
+                        Eigen::Vector3d tr = node->getRelativeTranslation();
+                        tr(1) = tr(1) / 2.0;
+                        node->setRelativeTranslation(tr);
+                        auto s = node->getShape();
+                        if (s->getType() == "BoxShape") {
+                            auto b = (dart::dynamics::BoxShape*)s.get();
+                            Eigen::Vector3d size = b->getSize();
+                            size(2) = size(2) / 2.0;
+                            b->setSize(size);
+                        }
+                        else if (s->getType() == "CylinderShape") {
+                            auto b = (dart::dynamics::CylinderShape*)s.get();
+                            b->setHeight(b->getHeight() / 2.0);
+                        }
                     }
                 }
                 else if (dmg.type == "blocked_joint") {
