@@ -20,10 +20,8 @@ namespace hexapod_dart {
     public:
         Hexapod() {}
 
-        Hexapod(std::string urdf_file, std::vector<HexapodDamage> damages)
+        Hexapod(std::string urdf_file, std::vector<HexapodDamage> damages) : _skeleton(_load_urdf(urdf_file))
         {
-            _damages = damages;
-            _skeleton = _load_urdf(urdf_file);
             assert(_skeleton != nullptr);
             _set_damages(damages);
         }
