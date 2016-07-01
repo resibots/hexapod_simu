@@ -91,7 +91,6 @@ namespace hexapod_dart {
 
 #ifdef GRAPHIC
             _osg_world_node = new dart::gui::osg::WorldNode(_world);
-            _osg_world_node->simulate(true);
             _osg_viewer.addWorldNode(_osg_world_node);
             _osg_viewer.setUpViewInWindow(0, 0, 640, 480);
 // full-screen
@@ -110,7 +109,6 @@ namespace hexapod_dart {
 
             // TO-DO: maybe wee need better solution for this/reset them?
             static Eigen::Vector6d init_trans = rob->pose();
-            static Eigen::VectorXd torques(rob->skeleton()->getNumDofs());
 
 #ifdef GRAPHIC
             while ((_world->getTime() - old_t) < duration && !_osg_viewer.done())
@@ -124,7 +122,7 @@ namespace hexapod_dart {
 
                 // integrate Torque (force) over time
                 Eigen::VectorXd state = rob->skeleton()->getForces().array().abs() * _world->getTimeStep();
-                torques = torques + state;
+                _energy += state.sum();
 
                 // update safety measures
                 boost::fusion::for_each(_safety_measures, Refresh<HexapodDARTSimu, Hexapod>(*this, rob, init_trans));
@@ -155,7 +153,6 @@ namespace hexapod_dart {
 
                 ++index;
             }
-            _energy += torques.sum();
             _old_index = index;
 
             if (!continuous) {

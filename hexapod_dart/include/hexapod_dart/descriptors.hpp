@@ -45,13 +45,8 @@ namespace hexapod_dart {
                 const dart::collision::CollisionResult& col_res = simu.world()->getLastCollisionResult();
                 for (size_t i = 0; i < 6; ++i) {
                     std::string leg_name = "leg_" + std::to_string(i) + "_3";
-                    dart::dynamics::BodyNodePtr body_to_check;
-                    // TO-DO: Maybe there's a cleaner way to get the body
-                    for (size_t j = 0; j < rob->skeleton()->getNumBodyNodes(); j++) {
-                        auto bd = rob->skeleton()->getBodyNode(j);
-                        if (leg_name == bd->getName())
-                            body_to_check = bd;
-                    }
+                    dart::dynamics::BodyNodePtr body_to_check = rob->skeleton()->getBodyNode(leg_name);
+
                     if (rob->is_broken(i)) {
                         _contacts[i].push_back(0);
                     }

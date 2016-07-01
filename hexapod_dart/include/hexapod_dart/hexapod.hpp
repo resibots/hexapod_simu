@@ -9,20 +9,27 @@
 #include <streambuf>
 
 namespace hexapod_dart {
+
+    struct HexapodDamage {
+        std::string type;
+        std::string data;
+        void* extra = nullptr;
+    };
+
     class Hexapod {
     public:
         Hexapod() {}
 
-        Hexapod(std::string urdf_file, std::vector<int> broken_legs) : _skeleton(_load_urdf(urdf_file))
+        Hexapod(std::string urdf_file, std::vector<HexapodDamage> damages) : _skeleton(_load_urdf(urdf_file))
         {
             assert(_skeleton != nullptr);
-            _set_broken(broken_legs);
+            _set_damages(damages);
         }
 
-        Hexapod(dart::dynamics::SkeletonPtr skeleton, std::vector<int> broken_legs) : _skeleton(skeleton)
+        Hexapod(dart::dynamics::SkeletonPtr skeleton, std::vector<HexapodDamage> damages) : _skeleton(skeleton)
         {
             assert(_skeleton != nullptr);
-            _set_broken(broken_legs);
+            _set_damages(damages);
         }
 
         std::shared_ptr<Hexapod> clone() const
@@ -33,6 +40,7 @@ namespace hexapod_dart {
             _skeleton->getMutex().unlock();
             auto hexapod = std::make_shared<Hexapod>();
             hexapod->_skeleton = tmp_skel;
+            hexapod->_damages = _damages;
             hexapod->_broken_legs = _broken_legs;
             return hexapod;
         }
@@ -42,7 +50,7 @@ namespace hexapod_dart {
             return _skeleton;
         }
 
-        bool is_broken(int leg)
+        bool is_broken(int leg) const
         {
             for (size_t j = 0; j < _broken_legs.size(); j++) {
                 if (leg == _broken_legs[j]) {
@@ -52,9 +60,14 @@ namespace hexapod_dart {
             return false;
         }
 
-        std::vector<int> broken_legs()
+        std::vector<int> broken_legs() const
         {
             return _broken_legs;
+        }
+
+        std::vector<HexapodDamage> damages() const
+        {
+            return _damages;
         }
 
         Eigen::Vector3d pos()
@@ -102,32 +115,63 @@ namespace hexapod_dart {
             return tmp_skel;
         }
 
-        void _set_broken(const std::vector<int>& broken_legs)
+        void _set_damages(const std::vector<HexapodDamage>& damages)
         {
-            _broken_legs = broken_legs;
-            std::sort(_broken_legs.begin(), _broken_legs.end());
-            _remove_legs();
-        }
+            _broken_legs.clear();
 
-        void _remove_legs()
-        {
-            std::vector<int> to_remove;
-            for (size_t i = 1; i < _skeleton->getNumJoints(); i += 3) {
-                std::vector<int>::iterator it = std::find(_broken_legs.begin(), _broken_legs.end(), (i - 1) / 3);
-                if (it != _broken_legs.end()) {
-                    to_remove.push_back(i);
+            _damages = damages;
+            for (auto dmg : _damages) {
+                if (dmg.type == "leg_removal") {
+                    for (size_t i = 0; i < dmg.data.size(); i++) {
+                        int l = dmg.data[i] - '0';
+                        _broken_legs.push_back(l);
+                        std::string leg_bd_name = "leg_" + std::string(1, dmg.data[i]) + "_1";
+                        auto bd = _skeleton->getBodyNode(leg_bd_name);
+                        bd->removeAllShapeNodes();
+                        bd->remove();
+                    }
+                }
+                else if (dmg.type == "leg_shortening") {
+                    std::string leg_bd_name = "leg_" + dmg.data + "_3";
+                    auto bd = _skeleton->getBodyNode(leg_bd_name);
+                    bd->setMass(bd->getMass() / 2.0);
+                    auto nodes = bd->getShapeNodes();
+
+                    for (auto node : nodes) {
+                        Eigen::Vector3d tr = node->getRelativeTranslation();
+                        tr(1) = tr(1) / 2.0;
+                        node->setRelativeTranslation(tr);
+                        auto s = node->getShape();
+                        if (s->getType() == "BoxShape") {
+                            auto b = (dart::dynamics::BoxShape*)s.get();
+                            Eigen::Vector3d size = b->getSize();
+                            size(2) = size(2) / 2.0;
+                            b->setSize(size);
+                        }
+                        else if (s->getType() == "CylinderShape") {
+                            auto b = (dart::dynamics::CylinderShape*)s.get();
+                            b->setHeight(b->getHeight() / 2.0);
+                        }
+                    }
+                }
+                else if (dmg.type == "blocked_joint") {
+                    auto jnt = _skeleton->getJoint(dmg.data);
+                    if (dmg.extra)
+                        jnt->setPosition(0, *((double*)dmg.extra));
+                    jnt->setActuatorType(dart::dynamics::Joint::LOCKED);
+                }
+                else if (dmg.type == "free_joint") {
+                    _skeleton->getJoint(dmg.data)->setActuatorType(dart::dynamics::Joint::PASSIVE);
                 }
             }
 
-            for (size_t i = 0; i < to_remove.size(); i++) {
-                auto tmp = _skeleton->getJoint(to_remove[i] - i * 3)->getChildBodyNode();
-                tmp->removeAllShapeNodes();
-                tmp->remove();
-            }
+            std::sort(_broken_legs.begin(), _broken_legs.end());
         }
 
         dart::dynamics::SkeletonPtr _skeleton;
+        std::vector<HexapodDamage> _damages;
         std::vector<int> _broken_legs;
+        std::vector<int> _removed_joints;
     };
 }
 
