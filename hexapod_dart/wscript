@@ -51,7 +51,8 @@ def configure(conf):
             common_flags = "-Wall -std=c++0x"
         else:
             common_flags = "-Wall -std=c++11"
-        opt_flags = " -O3 -march=native -g"
+        # opt_flags = " -O3 -march=native -g"
+        opt_flags = " -O3 -g"
 
     all_flags = common_flags + opt_flags
     conf.env['CXXFLAGS'] = conf.env['CXXFLAGS'] + all_flags.split(' ')
