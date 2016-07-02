@@ -108,16 +108,16 @@ namespace hexapod_dart {
                 Eigen::Matrix3d init_rot = dart::math::expMapRot({init_trans[0], init_trans[1], init_trans[2]});
                 auto rpy = dart::math::matrixToEulerXYZ(init_rot.inverse() * rot);
 
-                _rotation_traj.push_back(rpy(2));
+                _rotation_traj.push_back(rpy);
             }
 
-            void get(std::vector<double>& results)
+            void get(std::vector<Eigen::Vector3d>& results)
             {
                 results = _rotation_traj;
             }
 
         protected:
-            std::vector<double> _rotation_traj;
+            std::vector<Eigen::Vector3d> _rotation_traj;
         };
 
         struct BodyOrientation : public DescriptorBase {
