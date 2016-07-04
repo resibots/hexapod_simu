@@ -12,7 +12,7 @@ namespace hexapod_dart {
 
     struct HexapodDamage {
         HexapodDamage() {}
-        HexapodDamage(const std::string& type, const std::string& data): type(type), data(data) {}
+        HexapodDamage(const std::string& type, const std::string& data, void* extra = nullptr) : type(type), data(data), extra(extra) {}
 
         std::string type;
         std::string data;
