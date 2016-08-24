@@ -309,6 +309,7 @@ namespace hexapod_dart {
             else
                 body = box_skel->createJointAndBodyNodePair<dart::dynamics::WeldJoint>(nullptr).second;
             body->setMass(mass);
+            body->setName(name);
 
             // Give the body a shape
             auto box = std::make_shared<dart::dynamics::BoxShape>(dims);
@@ -351,6 +352,7 @@ namespace hexapod_dart {
             else
                 body = ellipsoid_skel->createJointAndBodyNodePair<dart::dynamics::WeldJoint>(nullptr).second;
             body->setMass(mass);
+            body->setName(name);
 
             // Give the body a shape
             auto ellipsoid = std::make_shared<dart::dynamics::EllipsoidShape>(dims);
