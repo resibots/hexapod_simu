@@ -1,8 +1,8 @@
 #ifndef HEXAPOD_DART_HEXAPOD_CONTROL
 #define HEXAPOD_DART_HEXAPOD_CONTROL
 
-#include <hexapod_dart/hexapod.hpp>
 #include <hexapod_controller/hexapod_controller_simple.hpp>
+#include <hexapod_dart/hexapod.hpp>
 
 namespace hexapod_dart {
 
@@ -28,12 +28,10 @@ namespace hexapod_dart {
             return _controller.parameters();
         }
 
-        robot_t robot()
+        robot_t robot() { return _robot; }
+
+        void acknowledge_damages()
         {
-            return _robot;
-        }
-        
-        void acknowledge_damages() {
             _controller.set_broken(_robot->broken_legs());
             update_p();
         }
@@ -41,10 +39,10 @@ namespace hexapod_dart {
         void update(double t)
         {
             auto angles = _controller.pos(t);
-            _target_positions.resize(6+angles.size());
+            _target_positions.resize(6 + angles.size());
             for (size_t i = 0; i < angles.size(); i++)
                 _target_positions(i + 6) = ((i % 3 == 1) ? 1.0 : -1.0) * angles[i];
-            
+
             set_commands();
         }
 
@@ -69,7 +67,7 @@ namespace hexapod_dart {
 
         Eigen::VectorXd _target_positions;
         Eigen::VectorXd _p;
-        
+
         void update_p()
         {
             size_t dof = _robot->skeleton()->getNumDofs();

@@ -1,19 +1,19 @@
 #ifndef HEXAPOD_DART_SIMU_HPP
 #define HEXAPOD_DART_SIMU_HPP
 
-#include <boost/parameter.hpp>
-#include <boost/fusion/include/vector.hpp>
 #include <boost/fusion/include/accumulate.hpp>
-#include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/find.hpp>
+#include <boost/fusion/include/for_each.hpp>
+#include <boost/fusion/include/vector.hpp>
+#include <boost/parameter.hpp>
 
-#include <dart/dart.hpp>
-#include <dart/collision/dart/DARTCollisionDetector.hpp>
 #include <Eigen/Core>
+#include <dart/collision/dart/DARTCollisionDetector.hpp>
+#include <dart/dart.hpp>
+#include <hexapod_dart/descriptors.hpp>
 #include <hexapod_dart/hexapod.hpp>
 #include <hexapod_dart/hexapod_control.hpp>
 #include <hexapod_dart/safety_measures.hpp>
-#include <hexapod_dart/descriptors.hpp>
 #include <hexapod_dart/visualizations.hpp>
 
 #ifdef GRAPHIC
@@ -30,7 +30,8 @@ namespace hexapod_dart {
     typedef boost::parameter::parameters<boost::parameter::optional<tag::hexapod_control>,
         boost::parameter::optional<tag::safety>,
         boost::parameter::optional<tag::desc>,
-        boost::parameter::optional<tag::viz>> class_signature;
+        boost::parameter::optional<tag::viz>>
+        class_signature;
 
     template <typename Simu, typename robot>
     struct Refresh {
@@ -100,11 +101,11 @@ namespace hexapod_dart {
 #endif
         }
 
-        ~HexapodDARTSimu() {
-          _world->removeSkeleton(_hexa_skeleton);
+        ~HexapodDARTSimu()
+        {
+            _world->removeSkeleton(_hexa_skeleton);
         }
-        
-        
+
         void update_damages(std::vector<hexapod_dart::HexapodDamage> damages)
         {
             _world->removeSkeleton(_hexa_skeleton);
@@ -131,7 +132,7 @@ namespace hexapod_dart {
 #endif
             {
                 _controller.update(chain ? (_world->getTime() - old_t) : _world->getTime());
-                
+
                 _world->step(false);
 
                 // integrate Torque (force) over time

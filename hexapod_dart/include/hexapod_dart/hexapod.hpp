@@ -1,12 +1,12 @@
 #ifndef HEXAPOD_DART_HEXAPOD_HPP
 #define HEXAPOD_DART_HEXAPOD_HPP
 
+#include <Eigen/Core>
 #include <dart/dart.hpp>
 #include <dart/utils/urdf/urdf.hpp>
-#include <Eigen/Core>
-#include <string>
 #include <fstream>
 #include <streambuf>
+#include <string>
 
 namespace hexapod_dart {
 
@@ -72,7 +72,7 @@ namespace hexapod_dart {
         {
             return _damages;
         }
-        
+
         void set_damages(const std::vector<HexapodDamage>& damages)
         {
             _broken_legs.clear();
