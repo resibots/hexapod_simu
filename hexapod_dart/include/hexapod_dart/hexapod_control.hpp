@@ -15,19 +15,7 @@ namespace hexapod_dart {
             : _controller(ctrl, robot->broken_legs()), _robot(robot)
         {
             _target_positions = _robot->skeleton()->getPositions();
-
-            size_t dof = _robot->skeleton()->getNumDofs();
-
-            _p = Eigen::VectorXd::Zero(dof);
-
-            // first 6 DOF are 6d position - we don't want to put P values there
-            for (size_t i = 0; i < 6; ++i) {
-                _p(i) = 0.0;
-            }
-
-            for (size_t i = 6; i < dof; ++i) {
-                _p(i) = 1.0;
-            }
+            update_p();
         }
 
         void set_parameters(const std::vector<double>& ctrl)
@@ -44,13 +32,19 @@ namespace hexapod_dart {
         {
             return _robot;
         }
+        
+        void acknowledge_damages() {
+            _controller.set_broken(_robot->broken_legs());
+            update_p();
+        }
 
         void update(double t)
         {
             auto angles = _controller.pos(t);
+            _target_positions.resize(6+angles.size());
             for (size_t i = 0; i < angles.size(); i++)
                 _target_positions(i + 6) = ((i % 3 == 1) ? 1.0 : -1.0) * angles[i];
-
+            
             set_commands();
         }
 
@@ -75,6 +69,20 @@ namespace hexapod_dart {
 
         Eigen::VectorXd _target_positions;
         Eigen::VectorXd _p;
+        
+        void update_p()
+        {
+            size_t dof = _robot->skeleton()->getNumDofs();
+            _p = Eigen::VectorXd::Zero(dof);
+
+            // first 6 DOF are 6d position - we don't want to put P values there
+            for (size_t i = 0; i < 6; ++i) {
+                _p(i) = 0.0;
+            }
+            for (size_t i = 6; i < dof; ++i) {
+                _p(i) = 1.0;
+            }
+        }
     };
 }
 

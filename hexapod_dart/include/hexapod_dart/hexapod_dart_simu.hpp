@@ -80,7 +80,8 @@ namespace hexapod_dart {
             // set position of hexapod
             _robot->skeleton()->setPosition(5, 0.2);
             _add_floor();
-            _world->addSkeleton(_robot->skeleton());
+            _hexa_skeleton = _robot->skeleton();
+            _world->addSkeleton(_hexa_skeleton);
             _world->setTimeStep(0.015);
 
             std::vector<double> c_tmp(36, 0.0);
@@ -99,7 +100,19 @@ namespace hexapod_dart {
 #endif
         }
 
-        ~HexapodDARTSimu() {}
+        ~HexapodDARTSimu() {
+          _world->removeSkeleton(_hexa_skeleton);
+        }
+        
+        
+        void update_damages(std::vector<hexapod_dart::HexapodDamage> damages)
+        {
+            _world->removeSkeleton(_hexa_skeleton);
+            _robot->set_damages(damages);
+            _controller.acknowledge_damages();
+            _hexa_skeleton = _robot->skeleton();
+            _world->addSkeleton(_hexa_skeleton);
+        }
 
         void run(double duration = 5.0, bool continuous = false, bool chain = false)
         {
@@ -118,7 +131,7 @@ namespace hexapod_dart {
 #endif
             {
                 _controller.update(chain ? (_world->getTime() - old_t) : _world->getTime());
-
+                
                 _world->step(false);
 
                 // integrate Torque (force) over time
@@ -309,7 +322,6 @@ namespace hexapod_dart {
             else
                 body = box_skel->createJointAndBodyNodePair<dart::dynamics::WeldJoint>(nullptr).second;
             body->setMass(mass);
-            body->setName(name);
 
             // Give the body a shape
             auto box = std::make_shared<dart::dynamics::BoxShape>(dims);
@@ -352,7 +364,6 @@ namespace hexapod_dart {
             else
                 body = ellipsoid_skel->createJointAndBodyNodePair<dart::dynamics::WeldJoint>(nullptr).second;
             body->setMass(mass);
-            body->setName(name);
 
             // Give the body a shape
             auto ellipsoid = std::make_shared<dart::dynamics::EllipsoidShape>(dims);
@@ -452,6 +463,7 @@ namespace hexapod_dart {
         descriptors_t _descriptors;
         viz_t _visualizations;
         std::vector<dart::dynamics::SkeletonPtr> _objects;
+        dart::dynamics::SkeletonPtr _hexa_skeleton;
 #ifdef GRAPHIC
         bool _fixed_camera;
         Eigen::Vector3d _look_at;

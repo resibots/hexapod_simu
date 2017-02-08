@@ -26,13 +26,13 @@ namespace hexapod_dart {
         Hexapod(std::string urdf_file, std::vector<HexapodDamage> damages) : _skeleton(_load_urdf(urdf_file))
         {
             assert(_skeleton != nullptr);
-            _set_damages(damages);
+            set_damages(damages);
         }
 
         Hexapod(dart::dynamics::SkeletonPtr skeleton, std::vector<HexapodDamage> damages) : _skeleton(skeleton)
         {
             assert(_skeleton != nullptr);
-            _set_damages(damages);
+            set_damages(damages);
         }
 
         std::shared_ptr<Hexapod> clone() const
@@ -72,53 +72,8 @@ namespace hexapod_dart {
         {
             return _damages;
         }
-
-        Eigen::Vector3d pos()
-        {
-            // DART's getPositions returns: COM orientation, COM position, joint positions
-            auto pos_and_rot = _skeleton->getPositions();
-            return {pos_and_rot(3), pos_and_rot(4), pos_and_rot(5)};
-        }
-
-        Eigen::Vector3d rot()
-        {
-            // DART's getPositions returns: COM orientation, COM position, joint positions
-            auto pos_and_rot = _skeleton->getPositions();
-            return {pos_and_rot(0), pos_and_rot(1), pos_and_rot(2)};
-        }
-
-        Eigen::Vector6d pose()
-        {
-            // DART's getPositions returns: COM orientation, COM position, joint positions
-            auto pos_and_rot = _skeleton->getPositions();
-            Eigen::Vector6d tmp;
-            tmp << pos_and_rot(0), pos_and_rot(1), pos_and_rot(2), pos_and_rot(3), pos_and_rot(4), pos_and_rot(5);
-            return tmp;
-        }
-
-    protected:
-        dart::dynamics::SkeletonPtr _load_urdf(std::string urdf_file)
-        {
-            // Load file into string
-            std::ifstream t(urdf_file);
-            std::string str((std::istreambuf_iterator<char>(t)),
-                std::istreambuf_iterator<char>());
-            // Load the Skeleton from a file
-            dart::utils::DartLoader loader;
-            dart::dynamics::SkeletonPtr tmp_skel = loader.parseSkeletonString(str, "");
-            if (tmp_skel == nullptr)
-                return nullptr;
-            tmp_skel->setName("hexapod");
-
-            // Set joint limits/actuator types
-            for (size_t i = 1; i < tmp_skel->getNumJoints(); ++i) {
-                tmp_skel->getJoint(i)->setPositionLimitEnforced(true);
-                tmp_skel->getJoint(i)->setActuatorType(dart::dynamics::Joint::VELOCITY);
-            }
-            return tmp_skel;
-        }
-
-        void _set_damages(const std::vector<HexapodDamage>& damages)
+        
+        void set_damages(const std::vector<HexapodDamage>& damages)
         {
             _broken_legs.clear();
 
@@ -169,6 +124,51 @@ namespace hexapod_dart {
             }
 
             std::sort(_broken_legs.begin(), _broken_legs.end());
+        }
+
+        Eigen::Vector3d pos()
+        {
+            // DART's getPositions returns: COM orientation, COM position, joint positions
+            auto pos_and_rot = _skeleton->getPositions();
+            return {pos_and_rot(3), pos_and_rot(4), pos_and_rot(5)};
+        }
+
+        Eigen::Vector3d rot()
+        {
+            // DART's getPositions returns: COM orientation, COM position, joint positions
+            auto pos_and_rot = _skeleton->getPositions();
+            return {pos_and_rot(0), pos_and_rot(1), pos_and_rot(2)};
+        }
+
+        Eigen::Vector6d pose()
+        {
+            // DART's getPositions returns: COM orientation, COM position, joint positions
+            auto pos_and_rot = _skeleton->getPositions();
+            Eigen::Vector6d tmp;
+            tmp << pos_and_rot(0), pos_and_rot(1), pos_and_rot(2), pos_and_rot(3), pos_and_rot(4), pos_and_rot(5);
+            return tmp;
+        }
+
+    protected:
+        dart::dynamics::SkeletonPtr _load_urdf(std::string urdf_file)
+        {
+            // Load file into string
+            std::ifstream t(urdf_file);
+            std::string str((std::istreambuf_iterator<char>(t)),
+                std::istreambuf_iterator<char>());
+            // Load the Skeleton from a file
+            dart::utils::DartLoader loader;
+            dart::dynamics::SkeletonPtr tmp_skel = loader.parseSkeletonString(str, "");
+            if (tmp_skel == nullptr)
+                return nullptr;
+            tmp_skel->setName("hexapod");
+
+            // Set joint limits/actuator types
+            for (size_t i = 1; i < tmp_skel->getNumJoints(); ++i) {
+                tmp_skel->getJoint(i)->setPositionLimitEnforced(true);
+                tmp_skel->getJoint(i)->setActuatorType(dart::dynamics::Joint::VELOCITY);
+            }
+            return tmp_skel;
         }
 
         dart::dynamics::SkeletonPtr _skeleton;
