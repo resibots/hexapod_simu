@@ -27,6 +27,10 @@ namespace hexapod_dart {
         {
             assert(_skeleton != nullptr);
             _set_damages(damages);
+
+            // Set all coefficients to default values
+            set_friction_coeff();
+            set_restitution_coeff();
         }
 
         Hexapod(dart::dynamics::SkeletonPtr skeleton, std::vector<HexapodDamage> damages) : _skeleton(skeleton)
@@ -94,6 +98,38 @@ namespace hexapod_dart {
             Eigen::Vector6d tmp;
             tmp << pos_and_rot(0), pos_and_rot(1), pos_and_rot(2), pos_and_rot(3), pos_and_rot(4), pos_and_rot(5);
             return tmp;
+        }
+
+        void set_friction_coeff(double friction = 1.0)
+        {
+            if (friction < 0.0)
+                return;
+
+            for (size_t i = 0; i < _skeleton->getNumBodyNodes(); i++) {
+                auto bd = _skeleton->getBodyNode(i);
+                bd->setFrictionCoeff(friction);
+            }
+        }
+
+        double get_friction_coeff()
+        {
+            return _skeleton->getBodyNode(0)->getFrictionCoeff();
+        }
+
+        void set_restitution_coeff(double restitution = 0.0)
+        {
+            if (restitution < 0.0 || restitution > 1.0)
+                return;
+
+            for (size_t i = 0; i < _skeleton->getNumBodyNodes(); i++) {
+                auto bd = _skeleton->getBodyNode(i);
+                bd->setRestitutionCoeff(restitution);
+            }
+        }
+
+        double get_restitution_coeff()
+        {
+            return _skeleton->getBodyNode(0)->getRestitutionCoeff();
         }
 
     protected:
