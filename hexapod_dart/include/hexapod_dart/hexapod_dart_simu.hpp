@@ -6,6 +6,7 @@
 #include <boost/fusion/include/accumulate.hpp>
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/find.hpp>
+#include <math.h>
 
 #include <dart/dart.hpp>
 #include <dart/collision/dart/DARTCollisionDetector.hpp>
@@ -19,6 +20,7 @@
 #ifdef GRAPHIC
 #include <dart/gui/osg/osg.hpp>
 #endif
+
 
 namespace hexapod_dart {
 
@@ -52,8 +54,8 @@ namespace hexapod_dart {
         // defaults
         struct defaults {
             using hexapod_control_t = HexapodControl;
-            using safety_measures_t = boost::fusion::vector<safety_measures::MaxHeight>;
-            using descriptors_t = boost::fusion::vector<descriptors::DutyCycle>;
+            using safety_measures_t = boost::fusion::vector<safety_measures::TurnOver>;
+            using descriptors_t = boost::fusion::vector<descriptors::BodyOrientation>;
             using viz_t = boost::fusion::vector<visualizations::HeadingArrow>;
         };
 
@@ -80,10 +82,21 @@ namespace hexapod_dart {
             // set position of hexapod
             _robot->skeleton()->setPosition(5, 0.2);
             _add_floor();
+
+            #ifdef EASY_STAIRS
+            _add_easy_stairs();
+            #endif
+            #ifdef MEDIUM_STAIRS
+            _add_medium_stairs();
+            #endif
+            #ifdef HARD_STAIRS
+            _add_hard_stairs();
+            #endif
+
             _world->addSkeleton(_robot->skeleton());
             _world->setTimeStep(0.015);
 
-            std::vector<double> c_tmp(36, 0.0);
+            std::vector<double> c_tmp(54, 0.0);
             _controller.set_parameters(c_tmp);
             _stabilize_robot(true);
             _world->setTime(0.0);
@@ -94,6 +107,7 @@ namespace hexapod_dart {
             _osg_world_node = new dart::gui::osg::WorldNode(_world);
             _osg_viewer.addWorldNode(_osg_world_node);
             _osg_viewer.setUpViewInWindow(0, 0, 640, 480);
+            //_osg_viewer.setUpViewInWindow(0, 0, 1920, 1080);
 // full-screen
 // _osg_viewer.setUpViewOnSingleScreen();
 #endif
@@ -101,7 +115,7 @@ namespace hexapod_dart {
 
         ~HexapodDARTSimu() {}
 
-        void run(double duration = 5.0, bool continuous = false, bool chain = false)
+        void run(double duration = 10.0, bool continuous = false, bool chain = false)
         {
             _break = false;
             robot_t rob = this->robot();
@@ -110,6 +124,18 @@ namespace hexapod_dart {
 
             // TO-DO: maybe wee need better solution for this/reset them?
             static Eigen::Vector6d init_trans = rob->pose();
+            Eigen::Matrix3d init_rot = dart::math::expMapRot({init_trans[0], init_trans[1], init_trans[2]});
+            Eigen::MatrixXd init_homogeneous(4, 4);
+            init_homogeneous << init_rot(0, 0), init_rot(0, 1), init_rot(0, 2), init_trans[3], init_rot(1, 0), init_rot(1, 1), init_rot(1, 2), init_trans[4], init_rot(2, 0), init_rot(2, 1), init_rot(2, 2), init_trans[5], 0, 0, 0, 1;
+            Eigen::Vector4d pos = {init_trans[3], init_trans[4], init_trans[5], 1.0};
+
+            Eigen::Vector6d pose;
+            Eigen::Matrix3d rot;
+            Eigen::MatrixXd final_homogeneous(4, 4);
+ 
+            // store the y-displacement of the robot
+            double y_shift;
+            
 
 #ifdef GRAPHIC
             while ((_world->getTime() - old_t) < duration && !_osg_viewer.done())
@@ -131,9 +157,9 @@ namespace hexapod_dart {
                 boost::fusion::for_each(_visualizations, Refresh<HexapodDARTSimu, Hexapod>(*this, rob, init_trans));
 
                 if (_break) {
-                    _covered_distance = -10002.0;
-                    _arrival_angle = -10002.0;
-                    _energy = -10002.0;
+                    _covered_distance = -1.0;
+                    _arrival_angle = -10.0;
+                    _energy = -10.0;
                     return;
                 }
 
@@ -154,6 +180,26 @@ namespace hexapod_dart {
                     boost::fusion::for_each(_descriptors, Refresh<HexapodDARTSimu, Hexapod>(*this, rob, init_trans));
                 }
 
+                // compute the current position and check that the robot does not move away from his supposed trajectory too much
+                pose = rob->pose();
+                rot = dart::math::expMapRot({pose[0], pose[1], pose[2]});
+                final_homogeneous << rot(0, 0), rot(0, 1), rot(0, 2), pose[3], rot(1, 0), rot(1, 1), rot(1, 2), pose[4], rot(2, 0), rot(2, 1), rot(2, 2), pose[5], 0, 0, 0, 1;
+                pos = {init_trans[3], init_trans[4], init_trans[5], 1.0};
+                pos = init_homogeneous.inverse() * final_homogeneous * pos;
+
+                _final_pos = Eigen::Vector3d(pos(0), pos(1), pos(2));
+
+                _covered_distance = std::round(_final_pos(0) * 100) / 100.0;
+                y_shift = std::round(_final_pos(1) * 100) / 100.0;
+
+                // stop the simulation if the robot has moved too far in the y direction
+                if(fabs(y_shift) > 0.5)
+                    break;
+
+                // stop the simulation if the robot has covered at least 3 meters (he has managed to climb the stairs, no need to go farther)
+                if(_covered_distance > 3.0)
+                    break;
+
                 ++index;
             }
             _old_index = index;
@@ -168,14 +214,10 @@ namespace hexapod_dart {
             }
 
             // Position computation
-            Eigen::Vector6d pose = rob->pose();
-            Eigen::Matrix3d rot = dart::math::expMapRot({pose[0], pose[1], pose[2]});
-            Eigen::Matrix3d init_rot = dart::math::expMapRot({init_trans[0], init_trans[1], init_trans[2]});
-            Eigen::MatrixXd init_homogeneous(4, 4);
-            init_homogeneous << init_rot(0, 0), init_rot(0, 1), init_rot(0, 2), init_trans[3], init_rot(1, 0), init_rot(1, 1), init_rot(1, 2), init_trans[4], init_rot(2, 0), init_rot(2, 1), init_rot(2, 2), init_trans[5], 0, 0, 0, 1;
-            Eigen::MatrixXd final_homogeneous(4, 4);
+            pose = rob->pose();
+            rot = dart::math::expMapRot({pose[0], pose[1], pose[2]});
             final_homogeneous << rot(0, 0), rot(0, 1), rot(0, 2), pose[3], rot(1, 0), rot(1, 1), rot(1, 2), pose[4], rot(2, 0), rot(2, 1), rot(2, 2), pose[5], 0, 0, 0, 1;
-            Eigen::Vector4d pos = {init_trans[3], init_trans[4], init_trans[5], 1.0};
+            pos = {init_trans[3], init_trans[4], init_trans[5], 1.0};
             pos = init_homogeneous.inverse() * final_homogeneous * pos;
 
             _final_pos = Eigen::Vector3d(pos(0), pos(1), pos(2));
@@ -411,7 +453,7 @@ namespace hexapod_dart {
             return stabilized;
         }
 
-        void _add_floor()
+        void _add_floor(double offset = 0)
         {
             // We do not want 2 floors!
             if (_world->getSkeleton("floor") != nullptr)
@@ -431,11 +473,65 @@ namespace hexapod_dart {
 
             // Put the body into position
             Eigen::Isometry3d tf(Eigen::Isometry3d::Identity());
-            tf.translation() = Eigen::Vector3d(0.0, 0.0, -floor_height / 2.0);
+            tf.translation() = Eigen::Vector3d(0.0, 0.0, offset-floor_height / 2.0);
             body->getParentJoint()->setTransformFromParentBodyNode(tf);
 
             _world->addSkeleton(floor);
         }
+
+        // add one step of a stair, caracterized by its dimensions, position and color
+        void _add_step(std::string step_name, double step_length, double step_width, double step_height, double pos_x, double pos_y, double pos_z, Eigen::Vector4d col)
+        {
+            // We do not want 2 steps with the same name
+            if (_world->getSkeleton(step_name) != nullptr)
+                return;
+
+            dart::dynamics::SkeletonPtr step = dart::dynamics::Skeleton::create(step_name);
+
+            // Give the stairs a body
+            dart::dynamics::BodyNodePtr body = step->createJointAndBodyNodePair<dart::dynamics::WeldJoint>(nullptr).second;
+
+            // Give the body a shape
+            auto box = std::make_shared<dart::dynamics::BoxShape>(Eigen::Vector3d(step_length, step_width, step_height));
+            auto box_node = body->createShapeNodeWith<dart::dynamics::VisualAspect, dart::dynamics::CollisionAspect, dart::dynamics::DynamicsAspect>(box);
+            box_node->getVisualAspect()->setColor(col);
+
+            // Put the body into position
+            Eigen::Isometry3d tf(Eigen::Isometry3d::Identity());
+            tf.translation() = Eigen::Vector3d(pos_x, pos_y, pos_z);
+            body->getParentJoint()->setTransformFromParentBodyNode(tf);
+
+            _world->addSkeleton(step);
+        }
+
+
+        // create easy stairs (small steps, with wide spaces)
+        void _add_easy_stairs()
+        {
+            for(int i=0; i<5; i++)
+            {
+                _add_step("step"+std::to_string(i), 2.8-i*0.5, 1.2, 0.08, 1.9+0.25*i, 0.0, 0.04*i, dart::Color::Green(0.3+0.1*i));
+            }
+        }
+
+        // create medium stairs (small steps, with small spaces)
+        void _add_medium_stairs()
+        {
+            for(int i=0; i<5; i++)
+            {
+                _add_step("step"+std::to_string(i), 2.6-i*0.2, 1.2, 0.1, 1.8+0.1*i, 0.0, 0.05*i, dart::Color::Blue(0.3+0.1*i));
+            }
+        }
+
+        // create hard stairs (high steps, with medium spaces)
+        void _add_hard_stairs()
+        {
+            for(int i=0; i<5; i++)
+            {
+                _add_step("step"+std::to_string(i), 2.6-i*0.25, 1.2, 0.15, 1.8+0.125*i, 0.0, 0.075*i, dart::Color::Orange(0.3+0.1*i));
+            }
+        }
+
 
         robot_t _robot;
         Eigen::Vector3d _final_pos;
