@@ -133,15 +133,19 @@ namespace hexapod_dart {
         }
 
     protected:
-        dart::dynamics::SkeletonPtr _load_urdf(std::string urdf_file)
+        dart::dynamics::SkeletonPtr _load_urdf(std::string model_file)
         {
-            // Load file into string
-            std::ifstream t(urdf_file);
-            std::string str((std::istreambuf_iterator<char>(t)),
-                std::istreambuf_iterator<char>());
-            // Load the Skeleton from a file
+            // Remove spaces from beginning of the filename/path
+            model_file.erase(model_file.begin(), std::find_if(model_file.begin(), model_file.end(), [](int ch) {
+                return !std::isspace(ch);
+            }));
+
+            if (model_file[0] != '/')
+                model_file = boost::filesystem::current_path().string() + "/" + model_file;
+
+            dart::dynamics::SkeletonPtr tmp_skel;
             dart::utils::DartLoader loader;
-            dart::dynamics::SkeletonPtr tmp_skel = loader.parseSkeletonString(str, "");
+            tmp_skel = loader.parseSkeleton(model_file);
             if (tmp_skel == nullptr)
                 return nullptr;
             tmp_skel->setName("hexapod");
@@ -150,6 +154,19 @@ namespace hexapod_dart {
             for (size_t i = 1; i < tmp_skel->getNumJoints(); ++i) {
                 tmp_skel->getJoint(i)->setPositionLimitEnforced(true);
                 tmp_skel->getJoint(i)->setActuatorType(dart::dynamics::Joint::VELOCITY);
+            }
+
+            // Fix for mesh materials
+            for (size_t i = 0; i < tmp_skel->getNumBodyNodes(); ++i) {
+                dart::dynamics::BodyNode* bn = tmp_skel->getBodyNode(i);
+                for (size_t j = 0; j < bn->getNumShapeNodes(); ++j) {
+                    dart::dynamics::ShapeNode* sn = bn->getShapeNode(j);
+                    if (sn->getVisualAspect()) {
+                        dart::dynamics::MeshShape* ms = dynamic_cast<dart::dynamics::MeshShape*>(sn->getShape().get());
+                        if (ms)
+                            ms->setColorMode(dart::dynamics::MeshShape::SHAPE_COLOR);
+                    }
+                }
             }
             return tmp_skel;
         }
