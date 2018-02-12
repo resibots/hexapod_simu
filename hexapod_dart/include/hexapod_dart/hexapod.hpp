@@ -3,6 +3,7 @@
 
 #include <dart/dart.hpp>
 #include <dart/utils/urdf/urdf.hpp>
+#include <boost/filesystem.hpp>
 #include <Eigen/Core>
 #include <string>
 #include <fstream>
