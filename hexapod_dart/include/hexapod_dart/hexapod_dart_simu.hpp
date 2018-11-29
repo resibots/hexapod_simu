@@ -1,19 +1,20 @@
 #ifndef HEXAPOD_DART_SIMU_HPP
 #define HEXAPOD_DART_SIMU_HPP
 
-#include <boost/parameter.hpp>
-#include <boost/fusion/include/vector.hpp>
 #include <boost/fusion/include/accumulate.hpp>
-#include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/find.hpp>
+#include <boost/fusion/include/for_each.hpp>
+#include <boost/fusion/include/vector.hpp>
+#include <boost/parameter.hpp>
 
-#include <dart/dart.hpp>
-#include <dart/collision/dart/DARTCollisionDetector.hpp>
 #include <Eigen/Core>
+#include <dart/collision/dart/DARTCollisionDetector.hpp>
+#include <dart/dart.hpp>
+#include <hexapod_dart/descriptors.hpp>
 #include <hexapod_dart/hexapod.hpp>
 #include <hexapod_dart/hexapod_control.hpp>
+#include <hexapod_dart/hexapod_cpg_control.hpp>
 #include <hexapod_dart/safety_measures.hpp>
-#include <hexapod_dart/descriptors.hpp>
 #include <hexapod_dart/visualizations.hpp>
 
 #ifdef GRAPHIC
@@ -30,7 +31,8 @@ namespace hexapod_dart {
     typedef boost::parameter::parameters<boost::parameter::optional<tag::hexapod_control>,
         boost::parameter::optional<tag::safety>,
         boost::parameter::optional<tag::desc>,
-        boost::parameter::optional<tag::viz>> class_signature;
+        boost::parameter::optional<tag::viz>>
+        class_signature;
 
     template <typename Simu, typename robot>
     struct Refresh {
@@ -51,7 +53,7 @@ namespace hexapod_dart {
         using robot_t = std::shared_ptr<Hexapod>;
         // defaults
         struct defaults {
-            using hexapod_control_t = HexapodControl;
+            using hexapod_control_t = HexapodCPGControl;
             using safety_measures_t = boost::fusion::vector<safety_measures::MaxHeight>;
             using descriptors_t = boost::fusion::vector<descriptors::DutyCycle>;
             using viz_t = boost::fusion::vector<visualizations::HeadingArrow>;
@@ -75,6 +77,7 @@ namespace hexapod_dart {
                                                                           _desc_period(2),
                                                                           _break(false)
         {
+
             _world->getConstraintSolver()->setCollisionDetector(dart::collision::DARTCollisionDetector::create());
             _robot = robot;
             // set position of hexapod
@@ -90,10 +93,12 @@ namespace hexapod_dart {
             _controller.set_parameters(ctrl);
 
 #ifdef GRAPHIC
+
             _fixed_camera = false;
             _osg_world_node = new dart::gui::osg::WorldNode(_world);
             _osg_viewer.addWorldNode(_osg_world_node);
             _osg_viewer.setUpViewInWindow(0, 0, 640, 480);
+
 // full-screen
 // _osg_viewer.setUpViewOnSingleScreen();
 #endif
@@ -103,6 +108,7 @@ namespace hexapod_dart {
 
         void run(double duration = 5.0, bool continuous = false, bool chain = false)
         {
+
             _break = false;
             robot_t rob = this->robot();
             double old_t = _world->getTime();
@@ -461,6 +467,6 @@ namespace hexapod_dart {
         dart::gui::osg::Viewer _osg_viewer;
 #endif
     };
-}
+} // namespace hexapod_dart
 
 #endif

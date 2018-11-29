@@ -26,7 +26,7 @@ def options(opt):
 
 
 def configure(conf):
-    conf.get_env()['BUILD_GRAPHIC'] = False
+    conf.get_env()['BUILD_GRAPHIC'] = True
 
     conf.load('compiler_cxx')
     conf.load('compiler_c')
