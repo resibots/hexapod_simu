@@ -1,8 +1,8 @@
 #ifndef HEXAPOD_DART_HEXAPOD_CONTROL
 #define HEXAPOD_DART_HEXAPOD_CONTROL
 
-#include <hexapod_dart/hexapod.hpp>
 #include <hexapod_controller/hexapod_controller_simple.hpp>
+#include <hexapod_dart/hexapod.hpp>
 
 namespace hexapod_dart {
 
@@ -76,6 +76,6 @@ namespace hexapod_dart {
         Eigen::VectorXd _target_positions;
         Eigen::VectorXd _p;
     };
-}
+} // namespace hexapod_dart
 
 #endif

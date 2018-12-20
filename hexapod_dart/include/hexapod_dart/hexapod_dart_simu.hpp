@@ -85,9 +85,8 @@ namespace hexapod_dart {
             _add_floor();
             _world->addSkeleton(_robot->skeleton());
             _world->setTimeStep(0.015);
-
-            std::vector<double> c_tmp(36, 0.0);
-            _controller.set_parameters(c_tmp);
+            // std::vector<double> c_tmp(36, 0.0);
+            // _controller.set_parameters(c_tmp);
             _stabilize_robot(true);
             _world->setTime(0.0);
             _controller.set_parameters(ctrl);
