@@ -1,37 +1,50 @@
-#ifndef HEXAPOD_DART_HEXAPOD_CPG_CONTROL
-#define HEXAPOD_DART_HEXAPOD_CPG_CONTROL
+#ifndef HEXAPOD_DART_HEXAPOD_IMU_CONTROL
+#define HEXAPOD_DART_HEXAPOD_IMU_CONTROL
 
-#include <hexapod_controller/cpg.hpp>
+#include <hexapod_controller/hexapod_controller_imu.hpp>
 #include <hexapod_dart/hexapod.hpp>
 namespace hexapod_dart {
 
-    class HexapodCPGControl {
+    class HexapodIMUControl {
     public:
         using robot_t = std::shared_ptr<Hexapod>;
 
-        HexapodCPGControl() {}
-        HexapodCPGControl(const std::vector<double>& ctrl, robot_t robot)
+        HexapodIMUControl()
         {
-
+            _t_prev_ = 0;
+        }
+        HexapodIMUControl(const std::vector<double>& ctrl, robot_t robot)
+            : _controller(ctrl, robot->broken_legs()), _robot(robot)
+        {
+            _t_prev_ = 0;
+            //_robot = robot;
             _broken_legs = robot->broken_legs();
 
-            _cpg.set_parameters(ctrl);
-
-            _robot = robot;
+            _target_positions = _robot->skeleton()->getPositions();
 
             size_t dof = _robot->skeleton()->getNumDofs();
 
+            _p = Eigen::VectorXd::Zero(dof);
             _vel_cmd = Eigen::VectorXd::Zero(dof);
+
+            // first 6 DOF are 6d position - we don't want to put P values there
+            for (size_t i = 0; i < 6; ++i) {
+                _p(i) = 0.0;
+            }
+
+            for (size_t i = 6; i < dof; ++i) {
+                _p(i) = 1.0;
+            }
         }
 
         void set_parameters(const std::vector<double>& ctrl)
         {
-            _cpg.set_parameters(ctrl);
+            _controller.set_parameters(ctrl);
         }
 
         const std::vector<double>& parameters() const
         {
-            return _cpg.parameters();
+            return _controller.parameters();
         }
 
         robot_t robot()
@@ -41,11 +54,7 @@ namespace hexapod_dart {
 
         void update(double t)
         {
-
-            //Extract joint positions from the robot skeletton
-            //The 6 first data are the COM rotation and position
             Eigen::VectorXd q = _robot->skeleton()->getPositions();
-
             //Extract yaw pitch roll of the robot thanks to COM data
             Eigen::Matrix3d rot = dart::math::expMapRot({q[0], q[1], q[2]});
             // Angle computation roll-pitch-yaw
@@ -53,6 +62,10 @@ namespace hexapod_dart {
 
             bool is_broken = false; // We suppose at first that no leg is missing
             int i_broken = 0;
+
+            std::vector<double> angles = _controller.pos(t);
+            for (size_t i = 0; i < angles.size(); i++)
+                _target_positions(i + 6) = ((i % 3 == 1) ? 1.0 : -1.0) * angles[i];
 
             //Create the joint_position vector for the cpg object, it needs the position of every leg
             std::vector<float> joint_position;
@@ -74,19 +87,9 @@ namespace hexapod_dart {
                     i_broken++;
                 }
             }
-
-            /*compute CPG cmd, without leveling the body*/
-            _cpg.computeCPGcmd();
-
-            /*modify cpg cmd to take into account the roll and pitch, close the loop*/
-            std::vector<float> cmd = _cpg.computeErrors(rpy(0), rpy(1), joint_position);
-            // if (cmd.size() == 19) {
-            //     std::cout << "INTEGRATION HAS DIVERGED : sending 0 commands" << std::endl;
-            // }
-            // for (auto& c : cmd) {
-            //     std::cout << " " << c << " ";
-            // }
-            // std::cout << "\n";
+            double loop_rate = t - _t_prev_;
+            _t_prev_ = t;
+            std::vector<float> cmd = _controller.computeErrors(rpy(0), rpy(1), q, _target_positions, loop_rate);
 
             for (size_t i = 0; i < 6 + 3 * (6 - _broken_legs.size()); i++) {
                 _vel_cmd(i) = 0; //Don't move the COM ?
@@ -121,18 +124,26 @@ namespace hexapod_dart {
             if (_robot == nullptr)
                 return;
 
-            // std::cout << "vel cmd \n";
-            // for (int i = 0; i < _robot->skeleton()->getNumDofs(); i++) {
-            //     std::cout << i << " " << _vel_cmd(i) << "\n";
+            Eigen::VectorXd q = _robot->skeleton()->getPositions();
+            Eigen::VectorXd q_err = _target_positions - q;
+            double gain = 1.0 / (dart::math::constants<double>::pi() * _robot->skeleton()->getTimeStep());
+            Eigen::VectorXd vel = q_err * gain;
+
+            vel = vel.cwiseProduct(_p);
+            //  _vel_cmd = _vel_cmd.cwiseProduct(_p);
+            // for (size_t i = 0; i < 6 + 3 * (6 - _broken_legs.size()); i++) {
+            //     _vel_cmd(i) = 0; //Don't move the COM ?
             // }
-            // std::cout << "\n";
             _robot->skeleton()->setCommands(_vel_cmd);
         }
 
     protected:
-        cpg::CPG _cpg;
+        hexapod_controller::HexapodControllerImu _controller;
         robot_t _robot;
         Eigen::VectorXd _vel_cmd;
+        Eigen::VectorXd _target_positions;
+        Eigen::VectorXd _p;
+        double _t_prev_;
         std::vector<int> _broken_legs;
     };
 } // namespace hexapod_dart

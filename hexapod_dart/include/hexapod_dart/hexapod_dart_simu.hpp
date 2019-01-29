@@ -14,8 +14,10 @@
 #include <hexapod_dart/hexapod.hpp>
 #include <hexapod_dart/hexapod_control.hpp>
 #include <hexapod_dart/hexapod_cpg_control.hpp>
+#include <hexapod_dart/hexapod_imu_control.hpp>
 #include <hexapod_dart/safety_measures.hpp>
 #include <hexapod_dart/visualizations.hpp>
+#include <iostream>
 
 #ifdef GRAPHIC
 #include <dart/gui/osg/osg.hpp>
@@ -53,7 +55,7 @@ namespace hexapod_dart {
         using robot_t = std::shared_ptr<Hexapod>;
         // defaults
         struct defaults {
-            using hexapod_control_t = HexapodCPGControl;
+            using hexapod_control_t = HexapodIMUControl; // HexapodIMUControl; // HexapodCPGControl
             using safety_measures_t = boost::fusion::vector<safety_measures::MaxHeight>;
             using descriptors_t = boost::fusion::vector<descriptors::DutyCycle>;
             using viz_t = boost::fusion::vector<visualizations::HeadingArrow>;
@@ -83,12 +85,18 @@ namespace hexapod_dart {
             // set position of hexapod
             _robot->skeleton()->setPosition(5, 0.2);
             _add_floor();
+
             _world->addSkeleton(_robot->skeleton());
+
             _world->setTimeStep(0.015);
+
             // std::vector<double> c_tmp(36, 0.0);
             // _controller.set_parameters(c_tmp);
+
             _stabilize_robot(true);
+
             _world->setTime(0.0);
+
             _controller.set_parameters(ctrl);
 
 #ifdef GRAPHIC
@@ -122,6 +130,7 @@ namespace hexapod_dart {
             while ((_world->getTime() - old_t) < duration)
 #endif
             {
+
                 _controller.update(chain ? (_world->getTime() - old_t) : _world->getTime());
 
                 _world->step(false);
@@ -129,9 +138,12 @@ namespace hexapod_dart {
                 // integrate Torque (force) over time
                 Eigen::VectorXd state = rob->skeleton()->getForces().array().abs() * _world->getTimeStep();
                 _energy += state.sum();
-
+                //std::cout << "energy  " << std::endl;
+                //  std::cout << _energy << std::endl;
                 // update safety measures
+
                 boost::fusion::for_each(_safety_measures, Refresh<HexapodDARTSimu, Hexapod>(*this, rob, init_trans));
+
                 // update visualizations
                 boost::fusion::for_each(_visualizations, Refresh<HexapodDARTSimu, Hexapod>(*this, rob, init_trans));
 
@@ -393,21 +405,25 @@ namespace hexapod_dart {
             if (update_ctrl)
                 _world->setTimeStep(0.001);
 
-            for (size_t s = 0; s < 1000 && !stabilized; ++s) {
+            for (size_t s = 0; s < 10000 && !stabilized; ++s) {
                 Eigen::Vector6d prev_pose = rob->pose();
 
-                if (update_ctrl)
+                if (update_ctrl) {
+
                     _controller.update(_world->getTime());
+                }
+
                 else
                     _controller.set_commands();
                 _world->step();
 
-                if ((rob->pose() - prev_pose).norm() < 1e-4)
+                if ((rob->pose() - prev_pose).norm() < 1e-2)
                     stab++;
                 else
                     stab = 0;
-                if (stab > 30)
+                if (stab > 30) {
                     stabilized = true;
+                }
             }
 
             if (update_ctrl)
