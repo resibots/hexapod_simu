@@ -102,7 +102,8 @@ namespace hexapod_dart {
                 for (size_t j : _broken_legs) {
                     if (i == j) {
                         is_broken = true;
-                        index += 3;
+                        //index += 3;
+                        //i_broken++;
                     }
                 }
                 if (is_broken == false) {
@@ -130,7 +131,7 @@ namespace hexapod_dart {
             Eigen::VectorXd vel = q_err * gain;
 
             vel = vel.cwiseProduct(_p);
-            //  _vel_cmd = _vel_cmd.cwiseProduct(_p);
+            _vel_cmd = _vel_cmd.cwiseProduct(_p);
             // for (size_t i = 0; i < 6 + 3 * (6 - _broken_legs.size()); i++) {
             //     _vel_cmd(i) = 0; //Don't move the COM ?
             // }

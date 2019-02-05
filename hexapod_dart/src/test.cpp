@@ -68,7 +68,7 @@ int main()
     // ctrl = {0.75, 1.0, 0.8, 0.8, 0.1, 0.95, 0.7, 0.2, 0.35, 0.85, 0.85, 0.95, 0.7, 1.0, 0.8, 0.7, 0.2, 1.0, 1.0, 0.7, 0.45, 0.15, 0.15, 0.75, 1.0, 0.15, 0.5, 0.1, 0.5, 0.85, 0.25, 0.1, 0.9, 0.2, 0.9, 0.9};
     // simu.controller().set_parameters(ctrl);
     std::cout << "start simu" << std::endl;
-    simu.run(60);
+    simu.run(10);
     std::cout << "end simu" << std::endl;
     std::cout << simu.energy() << std::endl;
     std::vector<double> v;
