@@ -48,12 +48,16 @@ int main()
     // ctrl = {1, 0.85, 0.95, 1, 0.35, 0.2, 0.85, 0.05, 0.3, 0.95, 0.85, 0.4, 0.8, 0.55, 0.15, 0.25, 0.15, 0.85, 0.85, 0.85, 0.6, 0.5, 0.95, 0.05, 1, 0.25, 0.8, 0.75, 0.9, 0.3, 0.95, 0.3, 0.3, 0.65, 0.7, 0.75};
     // ctrl = {0.9, 1.0, 1.0, 0.75, 0.4, 0.95, 0.8, 0.9, 0.15, 0.2, 0.9, 0.15, 0.85, 0.3, 0.4, 0.8, 0.8, 0.7, 1.0, 0.9, 0.65, 0.1, 0.6, 0.4, 1.0, 0.75, 0.8, 0.8, 0.8, 0.75, 0.35, 0.35, 0.5, 0.8, 0.75, 0.85};
     // ctrl = {0.75, 0.9, 0.7, 0.75, 0.9, 0, 1, 0.1, 0.35, 0.2, 0.1, 0.15, 0.95, 0.25, 0.15, 0, 0.15, 0.15, 0.85, 0.95, 0.6, 0.9, 1, 0.2, 0.9, 0.85, 0.8, 0.25, 0.6, 0.95, 1, 0, 0.6, 0.3, 0.85, 0.75};
-    ctrl = {1, 0, 0.5, 0.25, 0.25, 0.5, 1, 0.5, 0.5, 0.25, 0.75, 0.5, 1, 0, 0.5, 0.25, 0.25, 0.5, 1, 0, 0.5, 0.25, 0.75, 0.5, 1, 0.5, 0.5, 0.25, 0.25, 0.5, 1, 0, 0.5, 0.25, 0.75, 0.5};
+
+    //ctrl = {1, 0, 0.5, 0.25, 0.25, 0.5, 1, 0.5, 0.5, 0.25, 0.75, 0.5, 1, 0, 0.5, 0.25, 0.25, 0.5, 1, 0, 0.5, 0.25, 0.75, 0.5, 1, 0.5, 0.5, 0.25, 0.25, 0.5, 1, 0, 0.5, 0.25, 0.75, 0.5};
+
+    ctrl = {0, -1, -1, 1, 1, -1, -1, 0, 1, -1, -1, 1, -1, 1, 0, -1, -1, 1, 1, -1, -1, 0, 1, -1, 1, -1, -1, 1, 0, -1, -1, 1, 1, -1, -1, 0};
 
     using desc_t = boost::fusion::vector<hexapod_dart::descriptors::DutyCycle, hexapod_dart::descriptors::BodyOrientation>;
     using viz_t = boost::fusion::vector<hexapod_dart::visualizations::HeadingArrow, hexapod_dart::visualizations::PointingArrow<Params>>;
     std::cout << "create simu" << std::endl;
     hexapod_dart::HexapodDARTSimu<hexapod_dart::desc<desc_t>, hexapod_dart::viz<viz_t>> simu(ctrl, global_robot);
+    std::cout << "simu created" << std::endl;
 #ifdef GRAPHIC
     simu.fixed_camera(Eigen::Vector3d(0, 10, 5));
 #endif
@@ -68,7 +72,7 @@ int main()
     // ctrl = {0.75, 1.0, 0.8, 0.8, 0.1, 0.95, 0.7, 0.2, 0.35, 0.85, 0.85, 0.95, 0.7, 1.0, 0.8, 0.7, 0.2, 1.0, 1.0, 0.7, 0.45, 0.15, 0.15, 0.75, 1.0, 0.15, 0.5, 0.1, 0.5, 0.85, 0.25, 0.1, 0.9, 0.2, 0.9, 0.9};
     // simu.controller().set_parameters(ctrl);
     std::cout << "start simu" << std::endl;
-    simu.run(10);
+    simu.run(30);
     std::cout << "end simu" << std::endl;
     std::cout << simu.energy() << std::endl;
     std::vector<double> v;

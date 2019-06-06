@@ -13,7 +13,9 @@
 #include <hexapod_dart/descriptors.hpp>
 #include <hexapod_dart/hexapod.hpp>
 #include <hexapod_dart/hexapod_control.hpp>
+//#include <hexapod_dart/hexapod_control_cpg.hpp>
 #include <hexapod_dart/hexapod_cpg_control.hpp>
+//#include <hexapod_dart/hexapod_cpg_open_loop_control.hpp>
 #include <hexapod_dart/hexapod_imu_control.hpp>
 #include <hexapod_dart/hexapod_imu_control_position.hpp>
 #include <hexapod_dart/safety_measures.hpp>
@@ -56,7 +58,7 @@ namespace hexapod_dart {
         using robot_t = std::shared_ptr<Hexapod>;
         // defaults
         struct defaults {
-            using hexapod_control_t = HexapodIMUControlPos; // HexapodIMUControl; // HexapodCPGControl //HexapodIMUControlPos
+            using hexapod_control_t = HexapodCPGControl; // HexapodIMUControl; // HexapodCPGControl //HexapodIMUControlPos
             using safety_measures_t = boost::fusion::vector<safety_measures::MaxHeight>;
             using descriptors_t = boost::fusion::vector<descriptors::DutyCycle>;
             using viz_t = boost::fusion::vector<visualizations::HeadingArrow>;
@@ -82,6 +84,7 @@ namespace hexapod_dart {
         {
 
             _world->getConstraintSolver()->setCollisionDetector(dart::collision::DARTCollisionDetector::create());
+
             _robot = robot;
             // set position of hexapod
             _robot->skeleton()->setPosition(5, 0.2);
@@ -98,7 +101,7 @@ namespace hexapod_dart {
 
             _world->setTime(0.0);
 
-            _controller.set_parameters(ctrl);
+            _controller.set_parameters(ctrl); //DECOMMENT
 
 #ifdef GRAPHIC
 

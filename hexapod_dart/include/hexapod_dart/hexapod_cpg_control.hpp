@@ -3,6 +3,7 @@
 
 #include <hexapod_controller/cpg.hpp>
 #include <hexapod_dart/hexapod.hpp>
+#include <iostream>
 namespace hexapod_dart {
 
     class HexapodCPGControl {
@@ -79,7 +80,7 @@ namespace hexapod_dart {
             _cpg.computeCPGcmd();
 
             /*modify cpg cmd to take into account the roll and pitch, close the loop*/
-            std::vector<float> cmd = _cpg.computeErrors(rpy(0), rpy(1), joint_position);
+            std::vector<float> cmd = _cpg.computeErrors(0, 0, joint_position); //rpy(0) rpy(1)
             // if (cmd.size() == 19) {
             //     std::cout << "INTEGRATION HAS DIVERGED : sending 0 commands" << std::endl;
             // }
@@ -126,7 +127,14 @@ namespace hexapod_dart {
             //     std::cout << i << " " << _vel_cmd(i) << "\n";
             // }
             // std::cout << "\n";
-            _robot->skeleton()->setCommands(_vel_cmd);
+            // std::cout << "vel : " << std::endl;
+            // for (size_t i = 0; i < 18; i++)
+            //     std::cout << _vel_cmd(6 + i) << std::endl;
+
+            double gain = 1.0 / (dart::math::constants<double>::pi() * _robot->skeleton()->getTimeStep());
+            Eigen::VectorXd vel = _vel_cmd * 1000;
+            gain;
+            _robot->skeleton()->setCommands(vel);
         }
 
     protected:
